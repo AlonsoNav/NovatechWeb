@@ -1,0 +1,19 @@
+.custom-nav-link{
+    color: #68696E;
+}
+
+.custom-nav-link:hover{
+    color: #2292D4;
+}
+
+.navbar-light span.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='gray' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.navbar-light button.navbar-toggler {
+    border-color: #2292D4;
+}
+
+.navbar-light button.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem #2292D4;
+}
