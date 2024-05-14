@@ -1,4 +1,4 @@
-import './HeaderStyle.css'
+import './Header.css'
 import '../styles/Style.css'
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -10,7 +10,7 @@ import PropTypes from "prop-types";
 const Header =({ isAdmin }) =>{
     Header.propTypes = {
         isAdmin: PropTypes.bool.isRequired,
-    };
+    }
 
     return(
         <Navbar expand="md" className="bg-primary position-fixed top-0 start-0 w-100 fixed-top">
