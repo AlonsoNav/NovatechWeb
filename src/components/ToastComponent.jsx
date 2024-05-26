@@ -1,4 +1,3 @@
-import './Toast.css'
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from "react-bootstrap/ToastContainer";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

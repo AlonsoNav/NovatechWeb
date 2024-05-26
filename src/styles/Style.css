@@ -2,6 +2,10 @@
     background-color: #103246 !important;
 }
 
+.bg-secondary{
+    background-color: #EEEAF4 !important;
+}
+
 .btn-primary{
     background-color: #2292D4 !important;
 }
@@ -10,6 +14,18 @@
     color: #2292D4;
 }
 
+.color-secondary{
+    color: #103246;
+}
+
 .color-quinary{
     color: #68696E;
+}
+
+.p-2rem{
+    padding: 2rem;
+}
+
+.m-header{
+    margin-top: 66px;
 }

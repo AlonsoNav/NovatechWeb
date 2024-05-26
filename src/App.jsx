@@ -7,7 +7,7 @@ import Profile from "./views/Profile.jsx";
 
 function App() {
     const renderWithHeader = (Component, isAdmin) => (
-        <div className="App">
+        <div className="App d-flex flex-column vh-100">
             <Header className="App-header sticky-top" isAdmin={isAdmin}/>
             <Component/>
         </div>

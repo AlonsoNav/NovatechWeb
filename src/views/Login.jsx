@@ -8,7 +8,7 @@ import Logo from '../assets/logo.svg';
 import {useState} from "react";
 import {validateEmail} from "../controllers/InputValidation.jsx";
 import {postRequest} from "../controllers/Database.jsx";
-import ToastComponent from "../components/Toast.jsx";
+import ToastComponent from "../components/ToastComponent.jsx";
 
 const Login = () => {
     const [email, setEmail] = useState('')
@@ -49,7 +49,7 @@ const Login = () => {
     }
 
     return (
-        <Container fluid>
+        <Container fluid className={"p-2rem bg-secondary"}>
             <ToastComponent
                 message={toastMessage}
                 show={showToast}

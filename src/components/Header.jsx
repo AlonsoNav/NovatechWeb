@@ -1,11 +1,11 @@
 import './Header.css'
 import '../styles/Style.css'
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faUser, faProjectDiagram, faComments, faSignOut, faBarChart} from '@fortawesome/free-solid-svg-icons';
-import PropTypes from "prop-types";
+import Container from 'react-bootstrap/Container'
+import Nav from 'react-bootstrap/Nav'
+import Navbar from 'react-bootstrap/Navbar'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {faUser, faProjectDiagram, faComments, faSignOut, faBarChart} from '@fortawesome/free-solid-svg-icons'
+import PropTypes from "prop-types"
 
 const Header =({ isAdmin }) =>{
     Header.propTypes = {
