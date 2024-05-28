@@ -18,7 +18,7 @@ const CollaboratorsAdd = () => {
         <Container fluid className={"m-header min-vw-100 min-vh-100"}>
             <Row className={"text-start p-3"}>
                 <Col>
-                    <h1 className={"h1 mb-3"}>Add New Collaborator</h1>
+                    <h1 className={"h1 mb-3"}>Add collaborator</h1>
                     <Form noValidate>
                         <Row md={2} xs={1}>
                             <Col md={{order:1}} xs={{order: 1}}>

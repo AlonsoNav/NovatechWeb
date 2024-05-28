@@ -9,6 +9,7 @@ import Login from "./views/Login";
 import Profile from "./views/Profile.jsx";
 import Projects from "./views/Projects.jsx"
 import Collaborators from "./views/Collaborators.jsx";
+import CollaboratorsAdd from "./views/collaborators/admin/CollaboratorsAdd.jsx";
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
@@ -23,7 +24,7 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 };
 function App() {
     const renderWithHeader = (Component, isAdmin) => (
-        <div className="App d-flex flex-column vh-100">
+        <div className="App d-flex flex-column min-vh-100 min-vw-100">
             <Header className="App-header sticky-top" isAdmin={isAdmin}/>
             <Component/>
         </div>
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
                 <Route path="/collaborators/update" element={renderWithHeader(Profile, true)} />
+                <Route path="/collaborators/add" element={renderWithHeader(CollaboratorsAdd, true)} />
                 <Route path="/collaborators" element={renderWithHeader(Collaborators, true)} />
             </Routes>
         </BrowserRouter>
