@@ -1,15 +1,14 @@
-import '../styles/Style.css'
+import '../../../styles/Style.css'
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import {useState} from "react";
-import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAdd, faSearch, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import {Table} from "react-bootstrap";
-import ModalComponent from "../components/ModalComponent.jsx";
+import ModalComponent from "../../../components/ModalComponent.jsx";
 import { Link } from 'react-router-dom';
 
 const Collaborators = () => {
@@ -29,7 +28,7 @@ const Collaborators = () => {
     }
 
     return (
-      <Container fluid className={"vw-100 m-header vh-100 p-3"}>
+      <Container fluid className={"m-header p-3"}>
           <ModalComponent
               onClose={() => setShowModal(false)}
               onConfirm={() => handleDeleteConfirmed()}
@@ -45,10 +44,10 @@ const Collaborators = () => {
                 <span className={"text-muted"}>{resultsAmount} results</span>
             </Col>
             <Col className={"text-end col-auto mt-1"}>
-                <Button className={"btn btn-primary justify-content-center"}>
+                <Link to={"/collaborators/add"} className={"btn btn-primary justify-content-center"}>
                     <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
                     Add Collaborator
-                </Button>
+                </Link>
             </Col>
         </Row>
         <Row className={"mb-3"}>

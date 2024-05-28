@@ -1,4 +1,4 @@
-// Imports
+import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom";
 // Local Imports
@@ -16,7 +16,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 const ProtectedRoute = ({ children, adminOnly }) => {
     const { isLogin, isAdmin } = useAuth();
 
-    if (!isLogin || (adminOnly && !isAdmin)) return <Navigate to="/" replace />;
+    if (!isLogin || (adminOnly && !isAdmin)) return <Navigate to="/" replace />
 
     return <>{children}</>;
 

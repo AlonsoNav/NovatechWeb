@@ -2,7 +2,6 @@
 import '../styles/Style.css'
 import ToastComponent from "../components/ToastComponent.jsx";
 import ModalComponent from "../components/ModalComponent.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx"
 // Imports
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
@@ -10,17 +9,17 @@ import Col from 'react-bootstrap/Col'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserCircle} from '@fortawesome/free-solid-svg-icons'
 import Form from "react-bootstrap/Form";
-import {useState,useEffect} from "react";
+import {useState, useEffect} from "react";
 import {validateEmail, validatePhone} from "../controllers/InputValidation.jsx";
 
 const Profile = () => {
-    const { isAdmin } = useAuth();
     const [name, setName] = useState('');
     const [id, setId] = useState('');
     const [email, setEmail] = useState('')
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [phone, setPhone] = useState('')
+    const [isAdmin, setIsAdmin] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [showModal, setShowModal] = useState(false)
