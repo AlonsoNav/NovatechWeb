@@ -8,7 +8,7 @@ import Header from "./components/Header.jsx";
 import Login from "./views/Login";
 import Profile from "./views/Profile.jsx";
 import Projects from "./views/Projects.jsx"
-
+import Collaborators from "./views/Collaborators.jsx";
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
@@ -22,9 +22,9 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 
 };
 function App() {
-    const renderWithHeader = (Component) => (
+    const renderWithHeader = (Component, isAdmin) => (
         <div className="App d-flex flex-column vh-100">
-            <Header className="App-header sticky-top" />
+            <Header className="App-header sticky-top" isAdmin={isAdmin}/>
             <Component/>
         </div>
     );
@@ -36,6 +36,8 @@ function App() {
                 <Route path="/" element={<Login/>} />
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
+                <Route path="/collaborators/update" element={renderWithHeader(Profile, true)} />
+                <Route path="/collaborators" element={renderWithHeader(Collaborators, true)} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>
