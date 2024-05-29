@@ -9,7 +9,7 @@ import { AuthProvider } from './contexts/AuthContext.jsx';
 function App() {
     const renderWithHeader = (Component, isAdmin) => (
         <div className="App d-flex flex-column vh-100">
-            <Header className="App-header sticky-top" isAdmin={isAdmin}/>
+            <Header className="App-header sticky-top" />
             <Component/>
         </div>
     );

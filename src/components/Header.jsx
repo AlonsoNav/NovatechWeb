@@ -1,5 +1,9 @@
+// Local Imports
 import './Header.css'
 import '../styles/Style.css'
+import { useAuth } from '../contexts/AuthContext';
+// Imports
+import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container'
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
@@ -7,9 +11,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faUser, faProjectDiagram, faComments, faSignOut, faBarChart} from '@fortawesome/free-solid-svg-icons'
 import PropTypes from "prop-types"
 
-const Header =({ isAdmin }) =>{
-    Header.propTypes = {
-        isAdmin: PropTypes.bool.isRequired,
+const Header = () => {
+    const { isAdmin, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = (event) => {
+        event.preventDefault();
+        logout();
+        navigate("/");
     }
 
     return(
@@ -42,7 +51,7 @@ const Header =({ isAdmin }) =>{
                                 <FontAwesomeIcon icon={faUser} className="me-1" />User
                             </Nav.Link>
                         }
-                        <Nav.Link className="custom-nav-link" href="/">
+                        <Nav.Link className="custom-nav-link" onClick={handleLogout}>
                             <FontAwesomeIcon icon={faSignOut} className="me-1" />Log out
                         </Nav.Link>
                     </Nav>
