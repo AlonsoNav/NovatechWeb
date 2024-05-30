@@ -1,21 +1,26 @@
+// Local imports
 import '../styles/Style.css'
+import ToastComponent from "../components/ToastComponent.jsx";
+import ModalComponent from "../components/ModalComponent.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx"
+// Imports
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserCircle} from '@fortawesome/free-solid-svg-icons'
 import Form from "react-bootstrap/Form";
-import ToastComponent from "../components/ToastComponent.jsx";
-import {useState} from "react";
-import ModalComponent from "../components/ModalComponent.jsx";
+import {useState,useEffect} from "react";
 import {validateEmail, validatePhone} from "../controllers/InputValidation.jsx";
 
 const Profile = () => {
+    const { isAdmin } = useAuth();
+    const [name, setName] = useState('');
+    const [id, setId] = useState('');
     const [email, setEmail] = useState('')
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [phone, setPhone] = useState('')
-    const [isAdmin, setIsAdmin] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [showModal, setShowModal] = useState(false)
@@ -34,6 +39,14 @@ const Profile = () => {
             return
         setShowModal(true)
     }
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        setEmail(user.correo);
+        setPhone(user.telefono);
+        setName(user.nombre);
+        setId(user.cedula);
+    }, [])
 
     return (
         <Container fluid className={"vw-100 m-header vh-100"} >
@@ -60,10 +73,10 @@ const Profile = () => {
                     <div className={"fs-4 text-nowrap mt-3"}>
                         <Row md={2} xs={1}>
                             <Col>
-                                <span><strong>Name:</strong> Alonso Navarro</span>
+                                <span><strong>Name:</strong> {name}</span>
                             </Col>
                             <Col>
-                                <span><strong>Id:</strong> 123456789</span>
+                                <span><strong>Id:</strong> {id}</span>
                             </Col>
                         </Row>
                     </div>
