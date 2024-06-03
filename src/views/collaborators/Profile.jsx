@@ -1,16 +1,16 @@
 // Local imports
-import '../styles/Style.css'
-import ToastComponent from "../components/ToastComponent.jsx";
-import ModalComponent from "../components/ModalComponent.jsx";
+import '../../styles/Style.css'
+import ToastComponent from "../../components/ToastComponent.jsx";
+import ModalComponent from "../../components/ModalComponent.jsx";
+import {validateEmail, validatePhone} from "../../controllers/InputValidation.jsx";
 // Imports
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserCircle} from '@fortawesome/free-solid-svg-icons'
 import Form from "react-bootstrap/Form";
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faUserCircle} from '@fortawesome/free-solid-svg-icons'
 import {useState, useEffect} from "react";
-import {validateEmail, validatePhone} from "../controllers/InputValidation.jsx";
 
 const Profile = () => {
     const [name, setName] = useState('');
@@ -118,7 +118,7 @@ const Profile = () => {
                                 </Form.Group>
                             </Col>
                             <Col md={{order:2}} xs={{order: 3}}>
-                                <Form.Group className={"mb-3"} controlId="formBasicPassword">
+                                <Form.Group className={"mb-3"} controlId="formBasicNewPassword">
                                     <Form.Label>New password</Form.Label>
                                     <Form.Control
                                         type="password"
@@ -147,7 +147,7 @@ const Profile = () => {
                             </Col>
                             {!isAdmin && (
                                 <Col md={{order:4}} xs={{order: 4}}>
-                                    <Form.Group className={"mb-3"} controlId="formBasicPassword">
+                                    <Form.Group className={"mb-3"} controlId="formBasicCurrentPassword">
                                         <Form.Label>Current password</Form.Label>
                                         <Form.Control
                                             type="password"

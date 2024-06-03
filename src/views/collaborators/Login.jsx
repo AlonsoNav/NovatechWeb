@@ -1,4 +1,3 @@
-//
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -6,14 +5,13 @@ import Image from 'react-bootstrap/Image';
 import Form from "react-bootstrap/Form";
 import {useState} from "react";
 import { useNavigate } from 'react-router-dom';
-
 // Local Imports
-import '../styles/Style.css';
-import {useAuth} from '../contexts/AuthContext.jsx';
-import Logo from '../assets/logo.svg';
-import {validateEmail} from "../controllers/InputValidation.jsx";
-import {postRequest} from "../controllers/Database.jsx";
-import ToastComponent from "../components/ToastComponent.jsx";
+import '../../styles/Style.css';
+import Logo from '../../assets/logo.svg';
+import {useAuth} from '../../contexts/AuthContext.jsx';
+import {validateEmail} from "../../controllers/InputValidation.jsx";
+import {postRequest} from "../../controllers/Database.jsx";
+import ToastComponent from "../../components/ToastComponent.jsx";
 
 const Login = () => {
     const [email, setEmail] = useState('')

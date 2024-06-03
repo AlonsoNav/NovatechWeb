@@ -1,18 +1,16 @@
-import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom";
 // Local Imports
 import './App.css'
 import Header from "./components/Header.jsx";
 // Views
-import Login from "./views/Login";
-import Profile from "./views/Profile.jsx";
-import Projects from "./views/Projects.jsx"
-import Collaborators from "./views/Collaborators.jsx";
+import Login from "./views/collaborators/Login.jsx";
+import Profile from "./views/collaborators/Profile.jsx";
+import Projects from "./views/projects/Projects.jsx"
+import Collaborators from "./views/collaborators/admin/Collaborators.jsx";
 import CollaboratorsAdd from "./views/collaborators/admin/CollaboratorsAdd.jsx";
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
-
 
 const ProtectedRoute = ({ children, adminOnly }) => {
     const { isLogin, isAdmin } = useAuth();

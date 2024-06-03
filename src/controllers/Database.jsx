@@ -9,7 +9,7 @@ export async function postRequest(payload, endpoint) {
     }
 
     try {
-        return await fetch(`${API_URL}${endpoint}`, requestOptions);
+        return await fetch(`${API_URL}${endpoint}`, requestOptions)
     } catch (error) {
         console.log(error)
     }
