@@ -287,7 +287,7 @@ const Projects = () => {
                 </Col>
                 {isAdmin &&
                     <Col className={"text-end col-auto mt-1"}>
-                        <Link to={"/collaborators/add"} className={"btn btn-primary justify-content-center"}>
+                        <Link to={"/projects/add"} className={"btn btn-primary justify-content-center"}>
                             <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
                             Add Project
                         </Link>
