@@ -1,8 +1,10 @@
+// Bootstrap imports
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Image from 'react-bootstrap/Image';
 import Form from "react-bootstrap/Form";
+// React imports
 import {useState} from "react";
 import { useNavigate } from 'react-router-dom';
 // Local Imports
@@ -18,7 +20,7 @@ const Login = () => {
     const [password, setPassword] = useState('')
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
-    const { login } = useAuth();
+    const {login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) =>{
@@ -46,7 +48,7 @@ const Login = () => {
                     setShowToast(true)
                 }else{
                     login(body.colaboradorFinal)
-                    navigate("/profile")
+                    navigate('/projects')
                 }
             }
         }catch (error){

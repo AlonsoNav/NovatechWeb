@@ -21,9 +21,9 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 
 };
 function App() {
-    const renderWithHeader = (Component, isAdmin) => (
+    const renderWithHeader = (Component) => (
         <div className="App d-flex flex-column min-vh-100 min-vw-100">
-            <Header className="App-header sticky-top" isAdmin={isAdmin}/>
+            <Header className="App-header sticky-top"/>
             <Component/>
         </div>
     );
@@ -34,10 +34,10 @@ function App() {
             <Routes>
                 <Route path="/" element={<Login/>} />
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
+                <Route path="/collaborators" element={<ProtectedRoute>{renderWithHeader(Collaborators)}</ProtectedRoute>} />
+                <Route path="/collaborators/add" element={<ProtectedRoute>{renderWithHeader(CollaboratorsAdd)}</ProtectedRoute>} />
+                <Route path="/collaborators/update" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>}/>
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
-                <Route path="/collaborators/update" element={renderWithHeader(Profile, true)} />
-                <Route path="/collaborators/add" element={renderWithHeader(CollaboratorsAdd, true)} />
-                <Route path="/collaborators" element={renderWithHeader(Collaborators, true)} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>

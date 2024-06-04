@@ -29,3 +29,8 @@
 .m-header{
     margin-top: 66px;
 }
+
+.custom-scrollbar{
+    scrollbar-width: thin;
+    scrollbar-color: #2292D4 #FFFFFF;
+}
