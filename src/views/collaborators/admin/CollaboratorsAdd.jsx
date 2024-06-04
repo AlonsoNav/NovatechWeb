@@ -99,12 +99,12 @@ const CollaboratorsAdd = () => {
             }
             else{
                 const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else
+                    setToastBg("info")
                 setToastMessage(body.message)
                 setShowToast(true)
-                if (response.ok) {
-                    setToastBg("info")
-                }
-
             }
         }catch (error){
             console.log(error)
