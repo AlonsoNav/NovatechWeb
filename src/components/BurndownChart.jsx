@@ -4,14 +4,30 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const BurndownChart = () => {
-    const labels = ['1', '2', '3', '4', '5', '6', '7'];
+const BurndownChart = ({totalWeeks, totalStoryPoints, idealProgressRate, actualProgress}) => {
+    let labels = [];
+    for (var i=1; i <= totalWeeks; i++) {
+        labels.push(i.toString())
+    }
+
+    let progressRate = [];
+    for (var i=totalStoryPoints; i >= 0; i-=idealProgressRate) {
+        progressRate.push(i)
+    }
+
+    const actualProcessLength = actualProgress.length
+    if (actualProcessLength < progressRate.length) {
+        for (var i=actualProcessLength-1; i < progressRate.length; i++) {
+            actualProgress.push(actualProgress[actualProcessLength-1])
+        }
+    }
+
     const data = {
         labels: labels,
         datasets: [
             {
                 label: 'Ideal Progress',
-                data: [70, 60, 50, 40, 30, 20, 10, 0],
+                data: progressRate,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 2,
                 fill: false,
@@ -19,7 +35,7 @@ const BurndownChart = () => {
             },
             {
                 label: 'Actual Progress',
-                data: [70, 65, 55, 45, 35, 25, 15, 5],
+                data: actualProgress,
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 2,
                 fill: false,
@@ -47,7 +63,7 @@ const BurndownChart = () => {
             x: {
                 title: {
                 display: true,
-                text: 'Day'
+                text: 'Week'
                 }
             },
             y: {
