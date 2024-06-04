@@ -53,8 +53,11 @@ const Collaborators = () => {
                     if (!response.ok) {
                         setToastMessage(body.message)
                         setShowToast(true)
-                    }else
-                        setProjects(body.map(project => project.nombre))
+                    }else {
+                        let projectNames = body.map(project => project.nombre)
+                        projectNames.unshift("Free") // Add free option at the beginning of the list
+                        setProjects(projectNames)
+                    }
                 }
             } catch (error) {
                 console.log(error)
