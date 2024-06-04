@@ -1,6 +1,12 @@
 // Styles imports
 import '../../styles/Style.css'
 import 'react-datepicker/dist/react-datepicker.css';
+// Local imports
+import ModalComponent from "../../components/ModalComponent.jsx";
+import ToastComponent from "../../components/ToastComponent.jsx";
+import {getRequest} from "../../controllers/Database.jsx";
+import Project from "../../models/Project.jsx";
+import {useAuth} from "../../contexts/AuthContext.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -15,27 +21,141 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // React imports
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import DatePicker from 'react-datepicker';
-import ModalComponent from "../../components/ModalComponent.jsx";
 
 const Projects = () => {
     //
     const [resultsAmount, setResultsAmount] = useState(0)
     const [selectedProject, setSelectedProject] = useState({})
-    const [filteredProjects, setFilteredProjects] = useState([{name: "Project 1", status: "Finished", responsible: "Responsible 1"}, {name: "Project 2", status: "Not started",  responsible: "Responsible 2"}, {name: "Project 3", status: "Started",  responsible: "Responsible 3"}])
+    const [projects, setProjects] = useState([])
+    const { isAdmin } = useAuth();
     // Filters
     const [searchTerm, setSearchTerm] = useState('')
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
+    const [dateRangeActive, setDateRangeActive] = useState(false)
     const [statuses, setStatuses] = useState(["Finished", "Not started", "Started"])
     const [selectedStatus, setSelectedStatus] = useState([])
+    const [filteredProjects, setFilteredProjects] = useState([])
     // Components
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showOffcanvas, setShowOffcanvas] = useState(false)
+    const [showToast, setShowToast] = useState(false)
+    const [toastMessage, setToastMessage] = useState('')
+    const [toastBg, setToastBg] = useState('danger')
+
+    // Fetch data
+    useEffect(() => {
+        const fetchProjectsForAdmin = async () => {
+            try {
+                const response = await getRequest("proyectos/")
+
+                if (!response){
+                    setToastMessage("Could not connect to the server.")
+                    setShowToast(true)
+                }
+                else {
+                    const body = await response.json()
+                    if (!response.ok) {
+                        setToastMessage(body.message)
+                        setShowToast(true)
+                    }else {
+                        const projectsMap = body.map(project => {
+                            return new Project(
+                                project.nombre,
+                                project.responsable,
+                                project.estado,
+                                new Date(project.fechaInicio),
+                                new Date(project.fechaFin)
+                            )
+                        })
+                        setProjects(projectsMap)
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        const getProjectForCollaborator = () => {
+            const user = JSON.parse(localStorage.getItem("user"))
+            if(user.proyecto){
+                const project = new Project(
+                    user.proyecto.nombre,
+                    user.proyecto.responsable,
+                    user.proyecto.estado,
+                    new Date(user.proyecto.fechaInicio),
+                    new Date(user.proyecto.fechaFin)
+                )
+                setProjects([project])
+            }
+        }
+
+        if(isAdmin)
+            fetchProjectsForAdmin()
+        else
+            getProjectForCollaborator()
+    }, []);
+
+    // Set results amount
+    useEffect(() => {
+        setResultsAmount(filteredProjects.length)
+    }, [filteredProjects])
+
+    // Filter projects
+    useEffect(() => {
+        const filteredProjects = projects.filter(project => {
+            return filterProjectsByStatus(project)
+                && filterProjectsBySearchTerm(project)
+                && filterProjectsByDateRange(project)
+        })
+
+        setFilteredProjects(filteredProjects)
+    }, [projects, selectedStatus, startDate, endDate, searchTerm, dateRangeActive])
+
+    const filterProjectsByStatus = (project) => {
+        if (selectedStatus.length === 0)
+            return true
+        else
+            return selectedStatus.includes(project.status)
+    }
+
+    const filterProjectsBySearchTerm = (project) => {
+        if (searchTerm === "")
+            return true
+        else {
+            const searchTermLowerCase = searchTerm.toLowerCase()
+            const projectNameLowerCase = project.name.toLowerCase()
+
+            return projectNameLowerCase.includes(searchTermLowerCase)
+        }
+    }
+
+    const filterProjectsByDateRange = (project) => {
+        if(!dateRangeActive)
+            return true
+        // Convert dates to milliseconds to compare them easily
+        const projectStartDate = new Date(project.startDate).getTime();
+        const projectEndDate = new Date(project.endDate).getTime();
+        const selectedStartDate = new Date(startDate).getTime();
+        const selectedEndDate = new Date(endDate).getTime();
+
+        return projectStartDate >= selectedStartDate && projectEndDate <= selectedEndDate;
+    }
 
     // Project Card
+    const calculateProgress = (startDate, endDate) => {
+        const now = new Date();
+        const totalDuration = endDate - startDate;
+        const elapsedDuration = now - startDate;
+
+        const progress = (elapsedDuration / totalDuration) * 100;
+
+        return Math.min(progress, 100); // Make sure the progress is not greater than 100
+    }
+
     const projectCards = filteredProjects.map((project, index) => (
         <Col key={`project_card_${index}`}>
             <Card className={"bg-secondary color-secondary text-start"}>
@@ -47,13 +167,15 @@ const Projects = () => {
                             <Card.Text>{project.status}</Card.Text>
                         </Col>
                         <Col className={"col-auto"}>
-                            <button className="btn btn-sm btn-danger"
-                                    onClick={() => handleDelete(project)}>
-                                <FontAwesomeIcon icon={faTrash}/>
-                            </button>
+                            {isAdmin &&
+                                <button className="btn btn-sm btn-danger"
+                                        onClick={() => handleDelete(project)}>
+                                    <FontAwesomeIcon icon={faTrash}/>
+                                </button>
+                            }
                         </Col>
                     </Row>
-                    <ProgressBar striped now={60} variant={"info"}/>
+                    <ProgressBar striped now={calculateProgress(project.startDate, project.endDate)} variant={"info"}/>
                 </Card.Body>
             </Card>
         </Col>
@@ -62,6 +184,8 @@ const Projects = () => {
     // Filters
     const clearFilters = () => {
         setSelectedStatus([])
+        setStartDate(new Date())
+        setEndDate(new Date())
         setSearchTerm('')
     }
 
@@ -80,6 +204,7 @@ const Projects = () => {
         />
     ))
 
+    // Delete project
     const handleDelete = (project) => {
         setSelectedProject(project)
         setShowDeleteModal(true)
@@ -91,6 +216,12 @@ const Projects = () => {
 
     return(
         <Container fluid className={"m-header p-3"}>
+            <ToastComponent
+                message={toastMessage}
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                bg={toastBg}
+            />
             <ModalComponent
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={() => handleDeleteConfirmed()}
@@ -131,6 +262,12 @@ const Projects = () => {
                                     />
                                 </Col>
                             </Row>
+                            <Form.Check
+                                type="switch"
+                                checked={dateRangeActive}
+                                onChange={() => setDateRangeActive(!dateRangeActive)}
+                                label="Active search by date range"
+                            />
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Status</Form.Label>
@@ -148,12 +285,14 @@ const Projects = () => {
                     <h1 className={"h1"}>Projects</h1>
                     <span className={"text-muted"}>{resultsAmount} results</span>
                 </Col>
-                <Col className={"text-end col-auto mt-1"}>
-                    <Link to={"/collaborators/add"} className={"btn btn-primary justify-content-center"}>
-                        <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
-                        Add Project
-                    </Link>
-                </Col>
+                {isAdmin &&
+                    <Col className={"text-end col-auto mt-1"}>
+                        <Link to={"/collaborators/add"} className={"btn btn-primary justify-content-center"}>
+                            <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
+                            Add Project
+                        </Link>
+                    </Col>
+                }
             </Row>
             <Row className={"mb-3"}>
                 <Col className={"col-auto"}>
