@@ -3,29 +3,70 @@ import '../../styles/Style.css'
 import ToastComponent from "../../components/ToastComponent.jsx";
 import ModalComponent from "../../components/ModalComponent.jsx";
 import {validateEmail, validatePhone} from "../../controllers/InputValidation.jsx";
-// Imports
+// Bootstrap imports
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Form from "react-bootstrap/Form";
+// Fontawesome imports
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faUserCircle} from '@fortawesome/free-solid-svg-icons'
+// React imports
 import {useState, useEffect} from "react";
+import {putRequest} from "../../controllers/Database.jsx";
 
 const Profile = () => {
-    const [name, setName] = useState('');
-    const [id, setId] = useState('');
+    // Data
+    const user = JSON.parse(localStorage.getItem("user"))
+    const [name, setName] = useState('')
+    const [id, setId] = useState('')
+    const [project, setProject] = useState('')
+    const [department, setDepartment] = useState('')
+    // Form data
     const [email, setEmail] = useState('')
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [phone, setPhone] = useState('')
-    const [isAdmin, setIsAdmin] = useState(false)
+    // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
+    const [toastBg, setToastBg] = useState('danger')
     const [showModal, setShowModal] = useState(false)
 
+    // Edit profile
     const handleConfirm = async () => {
         setShowModal(false)
+        let payload = {
+            correo: email,
+            departamento: department,
+            telefono: phone,
+            contrasena: currentPassword,
+            nuevaContrasena: newPassword
+        }
+        try{
+            let response = await putRequest(payload, `colaboradores/${id}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else {
+                    user.correo = email
+                    user.telefono = phone
+                    localStorage.setItem("user", JSON.stringify(user))
+                    setToastBg("info")
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     const handleSubmit = (e) => {
@@ -39,20 +80,23 @@ const Profile = () => {
         setShowModal(true)
     }
 
+    // Fetch data
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user"));
-        setEmail(user.correo);
-        setPhone(user.telefono);
-        setName(user.nombre);
-        setId(user.cedula);
+        setEmail(user.correo)
+        setPhone(user.telefono)
+        setName(user.nombre)
+        setId(user.cedula)
+        setProject(user.proyecto ? user.proyecto.nombre : "Free")
+        setDepartment(user.departamento)
     }, [])
 
     return (
-        <Container fluid className={"vw-100 m-header vh-100"} >
+        <Container fluid className={"m-header"} >
             <ToastComponent
                 message={toastMessage}
                 show={showToast}
                 onClose={() => setShowToast(false)}
+                bg={toastBg}
             />
             <ModalComponent
                 onClose={() => setShowModal(false)}
@@ -77,6 +121,12 @@ const Profile = () => {
                             <Col>
                                 <span><strong>Id:</strong> {id}</span>
                             </Col>
+                            <Col>
+                                <span><strong>Project:</strong> {project}</span>
+                            </Col>
+                            <Col>
+                                <span><strong>Department:</strong> {department}</span>
+                            </Col>
                         </Row>
                     </div>
                 </Col>
@@ -85,22 +135,6 @@ const Profile = () => {
                 <Col>
                     <Form noValidate onSubmit={handleSubmit}>
                         <Row md={2} xs={1}>
-                            <Col md={{span:6, order:1}} xs={{order:1}}>
-                                <Form.Group className={"mb-3"}>
-                                    <Form.Label>Project name</Form.Label>
-                                    <Form.Select disabled={!isAdmin}>
-                                        <option>Default option</option>
-                                    </Form.Select>
-                                </Form.Group>
-                            </Col>
-                            <Col md={{span:6, order:1}} xs={{order:1}}>
-                                <Form.Group className={"mb-3"}>
-                                    <Form.Label>Department name</Form.Label>
-                                    <Form.Select disabled={!isAdmin}>
-                                        <option>Default option</option>
-                                    </Form.Select>
-                                </Form.Group>
-                            </Col>
                             <Col md={{order:2}} xs={{order: 2}}>
                                 <Form.Group className={"mb-3"} controlId="formBasicEmail">
                                     <Form.Label>Email</Form.Label>
@@ -145,20 +179,18 @@ const Profile = () => {
                                     </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            {!isAdmin && (
-                                <Col md={{order:4}} xs={{order: 4}}>
-                                    <Form.Group className={"mb-3"} controlId="formBasicCurrentPassword">
-                                        <Form.Label>Current password</Form.Label>
-                                        <Form.Control
-                                            type="password"
-                                            placeholder="Enter the current password..."
-                                            maxLength={16}
-                                            value={currentPassword}
-                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            )}
+                            <Col md={{order:4}} xs={{order: 4}}>
+                                <Form.Group className={"mb-3"} controlId="formBasicCurrentPassword">
+                                    <Form.Label>Current password</Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        placeholder="Enter the current password..."
+                                        maxLength={16}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
                         </Row>
                         <div className={"text-end"}>
                             <button type="submit" className={"btn btn-lg btn-primary mt-5"}>Edit information</button>
