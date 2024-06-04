@@ -28,3 +28,17 @@ export async function getRequest(endpoint) {
         console.log(error)
     }
 }
+
+export async function deleteRequest(endpoint) {
+    const requestOptions = {
+        method: 'DELETE',
+        mode: "cors",
+        headers: {'Content-Type': 'application/json'}
+    }
+
+    try {
+        return await fetch(`${API_URL}${endpoint}`, requestOptions)
+    } catch (error) {
+        console.log(error)
+    }
+}

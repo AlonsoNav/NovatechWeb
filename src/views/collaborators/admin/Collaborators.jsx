@@ -1,7 +1,7 @@
 // Local imports
 import '../../../styles/Style.css'
 import ModalComponent from "../../../components/ModalComponent.jsx"
-import {getRequest} from "../../../controllers/Database.jsx";
+import {deleteRequest, getRequest} from "../../../controllers/Database.jsx";
 import ToastComponent from "../../../components/ToastComponent.jsx";
 import Collaborator from "../../../models/Collaborator.jsx";
 // React imports
@@ -40,6 +40,7 @@ const Collaborators = () => {
     const [showOffcanvas, setShowOffcanvas] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
+    const [toastBg, setToastBg] = useState('danger')
 
     // Fetch data
     useEffect(() => {
@@ -103,13 +104,35 @@ const Collaborators = () => {
         fetchCollaborators()
     }, [])
     
-
+    // Delete collaborator
     const handleDelete = (collaborator) => {
         setCollaboratorToDelete(collaborator)
         setShowModal(true)
     }
 
-    const handleDeleteConfirmed = () => {
+    const handleDeleteConfirmed = async () => {
+        try{
+            let response = await deleteRequest(`colaboradores/${collaboratorToDelete.id}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setCollaborators(collaborators.filter(collaborator => collaborator.id !== collaboratorToDelete.id))
+                    setToastBg('info')
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
         setShowModal(false)
     }
 
@@ -245,13 +268,14 @@ const Collaborators = () => {
               message={toastMessage}
               show={showToast}
               onClose={() => setShowToast(false)}
+              bg={toastBg}
           />
           <ModalComponent
               onClose={() => setShowModal(false)}
               onConfirm={() => handleDeleteConfirmed()}
               show={showModal}
               title={"Confirm Collaborator Delete"}
-              message={`Are you sure you want to delete the collaborator ${collaboratorToDelete.name}?`}
+              message={`Are you sure you want to delete the collaborator ${collaboratorToDelete.email}?`}
               confirmButtonText={"Delete"}
               confirmButtonVariant={"danger"}
           />
