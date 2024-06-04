@@ -27,6 +27,7 @@ const CollaboratorsAdd = () => {
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
+    const [toastBg, setToastBg] = useState('danger')
 
     // Fetch data
     useEffect(() => {
@@ -100,6 +101,10 @@ const CollaboratorsAdd = () => {
                 const body = await response.json()
                 setToastMessage(body.message)
                 setShowToast(true)
+                if (response.ok) {
+                    setToastBg("info")
+                }
+
             }
         }catch (error){
             console.log(error)
@@ -112,6 +117,7 @@ const CollaboratorsAdd = () => {
                 message={toastMessage}
                 show={showToast}
                 onClose={() => setShowToast(false)}
+                bg={toastBg}
             />
             <Row className={"text-start p-3"}>
                 <Col>
