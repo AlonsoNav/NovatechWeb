@@ -32,6 +32,9 @@ const Collaborators = () => {
     const [selectedProjects, setSelectedProjects] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [filteredCollaborators, setFilteredCollaborators] = useState([])
+    // Sort
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
+    const [sortedCollaborators, setSortedCollaborators] = useState([]);
     // Components
     const [showModal, setShowModal] = useState(false)
     const [showOffcanvas, setShowOffcanvas] = useState(false)
@@ -152,8 +155,33 @@ const Collaborators = () => {
         }
     }
 
+    // Sort table
+    const requestSort = (key) => {
+        let direction = 'ascending'
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending'
+        }
+        setSortConfig({ key, direction })
+    }
+
+    useEffect(() => {
+        let sortedCollaborators = [...filteredCollaborators];
+        sortedCollaborators.sort((a, b) => {
+            let aValue = a[sortConfig.key] == null ? "Free" : a[sortConfig.key]
+            let bValue = b[sortConfig.key] == null ? "Free" : b[sortConfig.key]
+            if (aValue < bValue) {
+                return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+        });
+        setSortedCollaborators(sortedCollaborators);
+    }, [sortConfig, filteredCollaborators]);
+
     // Table items
-    const collaboratorItems = filteredCollaborators.map((collaborator, index) => (
+    const collaboratorItems = sortedCollaborators.map((collaborator, index) => (
         <tr key={index}>
             <td>{collaborator.id}</td>
             <td>{collaborator.name}</td>
@@ -289,12 +317,12 @@ const Collaborators = () => {
                 <Table striped bordered hover>
                     <thead>
                     <tr>
-                        <th>Id</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Project</th>
-                        <th>Department</th>
+                        <th onClick={() => requestSort('id')}>Id</th>
+                        <th onClick={() => requestSort('name')}>Name</th>
+                        <th onClick={() => requestSort('email')}>Email</th>
+                        <th onClick={() => requestSort('phone')}>Phone</th>
+                        <th onClick={() => requestSort('project')}>Project</th>
+                        <th onClick={() => requestSort('department')}>Department</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
