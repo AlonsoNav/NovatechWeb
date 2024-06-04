@@ -1,7 +1,7 @@
 // Local imports
 import '../../../styles/Style.css'
 import ModalComponent from "../../../components/ModalComponent.jsx"
-import {deleteRequest, getRequest} from "../../../controllers/Database.jsx";
+import {deleteRequest, getRequest, putRequest} from "../../../controllers/Database.jsx";
 import ToastComponent from "../../../components/ToastComponent.jsx";
 import Collaborator from "../../../models/Collaborator.jsx";
 // React imports
@@ -19,11 +19,13 @@ import InputGroup from "react-bootstrap/InputGroup"
 import Table from "react-bootstrap/Table"
 import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
+import Modal from "react-bootstrap/Modal";
+import {validateEmail, validatePhone} from "../../../controllers/InputValidation.jsx";
 
 const Collaborators = () => {
     //
     const [resultsAmount, setResultsAmount] = useState(0)
-    const [collaboratorToDelete, setCollaboratorToDelete] = useState({})
+    const [selectedCollaborator, setSelectedCollaborator] = useState({})
     const [collaborators, setCollaborators] = useState([])
     // Filters
     const [departments, setDepartments] = useState(["Accountability", "Administration", "HR", "IT"])
@@ -36,11 +38,19 @@ const Collaborators = () => {
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
     const [sortedCollaborators, setSortedCollaborators] = useState([]);
     // Components
-    const [showModal, setShowModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [showConfirmEditModal, setShowConfirmEditModal] = useState(false)
     const [showOffcanvas, setShowOffcanvas] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
+    // Edit form
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [phone, setPhone] = useState('')
+    const [department, setDepartment] = useState('')
+    const [project, setProject] = useState('')
 
     // Fetch data
     useEffect(() => {
@@ -106,13 +116,13 @@ const Collaborators = () => {
     
     // Delete collaborator
     const handleDelete = (collaborator) => {
-        setCollaboratorToDelete(collaborator)
-        setShowModal(true)
+        setSelectedCollaborator(collaborator)
+        setShowDeleteModal(true)
     }
 
     const handleDeleteConfirmed = async () => {
         try{
-            let response = await deleteRequest(`colaboradores/${collaboratorToDelete.id}`)
+            let response = await deleteRequest(`colaboradores/${selectedCollaborator.id}`)
 
             if (!response){
                 setToastMessage("Could not connect to the server.")
@@ -124,7 +134,7 @@ const Collaborators = () => {
                 if (!response.ok) {
                     setToastBg('danger')
                 }else{
-                    setCollaborators(collaborators.filter(collaborator => collaborator.id !== collaboratorToDelete.id))
+                    setCollaborators(collaborators.filter(collaborator => collaborator.id !== selectedCollaborator.id))
                     setToastBg('info')
                 }
                 setToastMessage(body.message)
@@ -133,7 +143,74 @@ const Collaborators = () => {
         }catch (error){
             console.log(error)
         }
-        setShowModal(false)
+        setShowDeleteModal(false)
+    }
+
+    // Edit collaborator
+    const handleEdit = (collaborator) => {
+        setSelectedCollaborator(collaborator)
+        setEmail(collaborator.email)
+        setPhone(collaborator.phone)
+        setDepartment(collaborator.department)
+        setProject(collaborator.project ? collaborator.project : "Free")
+        setShowEditModal(true)
+    }
+
+    const handleEditSubmit = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const form = e.currentTarget
+        if (form.checkValidity() === false ||
+            (email.length !== 0 && !validateEmail(email)) ||
+            (phone.length !== 0 && !validatePhone(phone)))
+            return
+        setShowEditModal(false)
+        setShowConfirmEditModal(true)
+    }
+
+    const handleEditConfirmed = async () => {
+        setShowConfirmEditModal(false)
+        let payload = {
+            correo: email,
+            departamento: department,
+            telefono: phone,
+            contrasena: password,
+            nombreProyecto: project
+        }
+        try{
+            let response = await putRequest(payload, `colaboradores/${selectedCollaborator.id}/admin`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else {
+                    let updatedCollaborators = collaborators.map(collaborator => {
+                        if (collaborator.id === selectedCollaborator.id) {
+                            return {
+                                ...collaborator,
+                                email: email,
+                                department: department,
+                                phone: phone,
+                                project: project === "Free" ? null : project
+                            }
+                        }
+                        return collaborator
+                    })
+                    setCollaborators(updatedCollaborators)
+                    setToastBg("info")
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     // Set results amount
@@ -213,10 +290,10 @@ const Collaborators = () => {
             <td>{collaborator.project != null ? collaborator.project : "Free"}</td>
             <td>{collaborator.department}</td>
             <td>
-                <Link to={{pathname: "/collaborators/update", state: {collaborator}}}
-                      className="btn btn-sm btn-primary me-1">
+                <button className="btn btn-sm btn-primary me-2"
+                        onClick={() => handleEdit(collaborator)}>
                     <FontAwesomeIcon icon={faEdit}/>
-                </Link>
+                </button>
                 <button className="btn btn-sm btn-danger"
                         onClick={() => handleDelete(collaborator)}>
                     <FontAwesomeIcon icon={faTrash}/>
@@ -262,6 +339,15 @@ const Collaborators = () => {
         />
     ))
 
+    // Selector options
+    const departmentOptions = departments.map((department, index) => (
+        <option key={`department_${index}`} label={department} value={department}></option>
+    ))
+
+    const projectOptions = projects.map((project, index) => (
+        <option key={`project_${index}`} label={project} value={project}></option>
+    ))
+
     return (
       <Container fluid className={"m-header p-3"}>
           <ToastComponent
@@ -271,14 +357,100 @@ const Collaborators = () => {
               bg={toastBg}
           />
           <ModalComponent
-              onClose={() => setShowModal(false)}
+              onClose={() => setShowDeleteModal(false)}
               onConfirm={() => handleDeleteConfirmed()}
-              show={showModal}
+              show={showDeleteModal}
               title={"Confirm Collaborator Delete"}
-              message={`Are you sure you want to delete the collaborator ${collaboratorToDelete.email}?`}
+              message={`Are you sure you want to delete the collaborator ${selectedCollaborator.email}?`}
               confirmButtonText={"Delete"}
               confirmButtonVariant={"danger"}
           />
+          <ModalComponent
+              onClose={() => {
+                  setShowConfirmEditModal(false)
+                  setShowEditModal(true)
+              }}
+              onConfirm={() => handleEditConfirmed()}
+              show={showConfirmEditModal}
+              title={"Save changes"}
+              message={"Are you sure you want to keep these changes?"}
+              confirmButtonText={"Save changes"}
+              confirmButtonVariant={"primary"}
+          />
+          <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+              <Modal.Header closeButton>
+                  <Modal.Title>Edit Collaborator</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                  <Form noValidate onSubmit={handleEditSubmit}>
+                      <Row md={2} xs={1}>
+                          <Col md={{span:6, order:1}} xs={{order:1}}>
+                              <Form.Group className={"mb-3"}>
+                                  <Form.Label>Project name</Form.Label>
+                                  <Form.Select value={project} onChange={(e) => setProject(e.target.value)}>
+                                      {projectOptions}
+                                  </Form.Select>
+                              </Form.Group>
+                          </Col>
+                          <Col md={{span:6, order:1}} xs={{order:1}}>
+                              <Form.Group className={"mb-3"}>
+                                  <Form.Label>Department name</Form.Label>
+                                  <Form.Select value={department} onChange={(e) => setDepartment(e.target.value)}>
+                                      {departmentOptions}
+                                  </Form.Select>
+                              </Form.Group>
+                          </Col>
+                          <Col md={{order:2}} xs={{order: 2}}>
+                              <Form.Group className={"mb-3"} controlId="formBasicEmail">
+                                  <Form.Label>Email</Form.Label>
+                                  <Form.Control
+                                      type="email"
+                                      placeholder="Enter email..."
+                                      maxLength={100}
+                                      value={email}
+                                      onChange={(e) => setEmail(e.target.value)}
+                                      isInvalid={email.length !== 0 && !validateEmail(email)}
+                                  />
+                                  <Form.Control.Feedback type='invalid'>
+                                      Please enter a valid email (@estudiantec.cr).
+                                  </Form.Control.Feedback>
+                              </Form.Group>
+                          </Col>
+                          <Col md={{order:2}} xs={{order: 3}}>
+                              <Form.Group className={"mb-3"} controlId="formBasicPassword">
+                                  <Form.Label>Password</Form.Label>
+                                  <Form.Control
+                                      type="password"
+                                      placeholder="Enter the password..."
+                                      maxLength={16}
+                                      value={password}
+                                      onChange={(e) => setPassword(e.target.value)}
+                                  />
+                              </Form.Group>
+                          </Col>
+                          <Col md={{order:3}} xs={{order: 2}}>
+                              <Form.Group className={"mb-3"} controlId="formBasicPhone">
+                                  <Form.Label>Phone</Form.Label>
+                                  <Form.Control
+                                      type="text"
+                                      placeholder="Enter phone..."
+                                      maxLength={8}
+                                      value={phone}
+                                      onChange={(e) => {if (!isNaN(e.target.value)) setPhone(e.target.value)}}
+                                      isInvalid={phone.length !== 0 && !validatePhone(phone)}
+                                  />
+                                  <Form.Control.Feedback type='invalid'>
+                                      Please enter a valid phone number.
+                                  </Form.Control.Feedback>
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <div className={"text-end"}>
+                          <button type="submit" className={"btn btn-primary mt-5"}>Edit information</button>
+                      </div>
+                  </Form>
+              </Modal.Body>
+          </Modal>
           <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} className={"m-header custom-scrollbar"}>
               <Offcanvas.Header closeButton>
                   <Offcanvas.Title>Filters</Offcanvas.Title>

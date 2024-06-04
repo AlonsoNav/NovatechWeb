@@ -42,3 +42,18 @@ export async function deleteRequest(endpoint) {
         console.log(error)
     }
 }
+
+export async function putRequest(payload, endpoint) {
+    const requestOptions = {
+        method: 'PUT',
+        mode: "cors",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    }
+
+    try {
+        return await fetch(`${API_URL}${endpoint}`, requestOptions)
+    } catch (error) {
+        console.log(error)
+    }
+}

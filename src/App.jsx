@@ -36,7 +36,6 @@ function App() {
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
                 <Route path="/collaborators" element={<ProtectedRoute>{renderWithHeader(Collaborators)}</ProtectedRoute>} />
                 <Route path="/collaborators/add" element={<ProtectedRoute>{renderWithHeader(CollaboratorsAdd)}</ProtectedRoute>} />
-                <Route path="/collaborators/update" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>}/>
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
