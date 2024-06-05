@@ -3,7 +3,7 @@ import "../../../styles/Style.css"
 import 'react-datepicker/dist/react-datepicker.css';
 // Local imports
 import ToastComponent from "../../../components/ToastComponent.jsx";
-import {getRequest} from "../../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../../controllers/Database.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -16,12 +16,13 @@ import {useEffect, useState} from "react";
 const ProjectsAdd = () => {
     // Data
     const [collaboratorsAvailable, setCollaboratorsAvailable] = useState([]);
+    const today = new Date()
     // Form data
     const [name, setName] = useState("");
     const [budget, setBudget] = useState("");
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
-    const [responsible, setResponsible] = useState("");
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
+    const [responsible, setResponsible] = useState()
     const [description, setDescription] = useState("");
     // Components
     const [showToast, setShowToast] = useState(false);
@@ -54,10 +55,50 @@ const ProjectsAdd = () => {
         fetchCollaboratorsAvailable()
     }, []);
 
+    useEffect(() => {
+        if (collaboratorsAvailable.length > 0) {
+            setResponsible(collaboratorsAvailable[0]);
+        }
+    }, [collaboratorsAvailable]);
+
     // Form submit
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         e.stopPropagation()
+        const form = e.currentTarget;
+        if(form.checkValidity() === false)
+            return
+
+        let payload = {
+            nombre: name,
+            presupuesto: budget,
+            fechaInicio: startDate,
+            fechaFinal: endDate,
+            correoResponsable: responsible,
+            descripcion: description
+        }
+        try{
+            let response = await postRequest(payload, "proyectos/")
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg("danger")
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else{
+                    setToastBg("info")
+                    setCollaboratorsAvailable(collaboratorsAvailable.filter(collaborator => collaborator !== responsible));
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     // Selector options
@@ -141,6 +182,7 @@ const ProjectsAdd = () => {
                                         selectsStart
                                         startDate={startDate}
                                         endDate={endDate}
+                                        minDate={today}
                                         className="form-control"
                                     />
                                 </Form.Group>
