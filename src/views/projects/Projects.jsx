@@ -4,7 +4,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 // Local imports
 import ModalComponent from "../../components/ModalComponent.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest} from "../../controllers/Database.jsx";
 import Project from "../../models/Project.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
 // Bootstrap imports
@@ -224,8 +224,30 @@ const Projects = () => {
         setShowDeleteModal(true)
     }
 
-    const handleDeleteConfirmed = () => {
+    const handleDeleteConfirmed = async () => {
         setShowDeleteModal(false)
+        try{
+            let response = await deleteRequest(`proyectos/${selectedProject.name}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setProjects(projects.filter(project => project.name !== selectedProject.name))
+                    setToastBg('info')
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     return(
