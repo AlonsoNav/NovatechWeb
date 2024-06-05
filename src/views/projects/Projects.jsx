@@ -27,14 +27,15 @@ import DatePicker from 'react-datepicker';
 
 const Projects = () => {
     //
+    const today = new Date();
     const [resultsAmount, setResultsAmount] = useState(0)
     const [selectedProject, setSelectedProject] = useState({})
     const [projects, setProjects] = useState([])
     const { isAdmin } = useAuth();
     // Filters
     const [searchTerm, setSearchTerm] = useState('')
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
     const [dateRangeActive, setDateRangeActive] = useState(false)
     const [statuses, setStatuses] = useState(["Finished", "Not started", "Started"])
     const [selectedStatus, setSelectedStatus] = useState([])
@@ -47,6 +48,15 @@ const Projects = () => {
     const [toastBg, setToastBg] = useState('danger')
 
     // Fetch data
+    const determineProjectStatus = (startDate, endDate) => {
+        if (today < startDate)
+            return "Not started"
+        else if (today < endDate)
+            return "Started"
+        else
+            return "Finished"
+    }
+
     useEffect(() => {
         const fetchProjectsForAdmin = async () => {
             try {
@@ -63,12 +73,14 @@ const Projects = () => {
                         setShowToast(true)
                     }else {
                         const projectsMap = body.map(project => {
+                            const projectStartDate = new Date(project.fechaInicio)
+                            const projectEndDate = new Date(project.fechaFin)
                             return new Project(
                                 project.nombre,
                                 project.responsable,
-                                project.estado,
-                                new Date(project.fechaInicio),
-                                new Date(project.fechaFin)
+                                determineProjectStatus(projectStartDate, projectEndDate),
+                                projectStartDate,
+                                projectEndDate
                             )
                         })
                         setProjects(projectsMap)
@@ -82,12 +94,14 @@ const Projects = () => {
         const getProjectForCollaborator = () => {
             const user = JSON.parse(localStorage.getItem("user"))
             if(user.proyecto){
+                const projectStartDate = new Date(project.fechaInicio)
+                const projectEndDate = new Date(project.fechaFin)
                 const project = new Project(
                     user.proyecto.nombre,
                     user.proyecto.responsable,
-                    user.proyecto.estado,
-                    new Date(user.proyecto.fechaInicio),
-                    new Date(user.proyecto.fechaFin)
+                    determineProjectStatus(projectStartDate, projectEndDate),
+                    projectStartDate,
+                    projectEndDate
                 )
                 setProjects([project])
             }
