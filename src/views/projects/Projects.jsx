@@ -84,26 +84,44 @@ const Projects = () => {
             }
         }
 
-        const getProjectForCollaborator = () => {
+        const fetchProjectForCollaborator = async () => {
             const user = JSON.parse(localStorage.getItem("user"))
             if(user.proyecto){
-                const projectStartDate = new Date(project.fechaInicio)
-                const projectEndDate = new Date(project.fechaFin)
-                const project = new Project(
-                    user.proyecto.nombre,
-                    user.proyecto.responsable,
-                    determineProjectStatus(projectStartDate, projectEndDate),
-                    projectStartDate,
-                    projectEndDate
-                )
-                setProjects([project])
+                try {
+                    const response = await getRequest(`proyectos/${user.proyecto.nombre}`)
+
+                    if (!response){
+                        setToastMessage("Could not connect to the server.")
+                        setShowToast(true)
+                    }
+                    else {
+                        const body = await response.json()
+                        if (!response.ok) {
+                            setToastMessage(body.message)
+                            setShowToast(true)
+                        }else {
+                            let projectStartDate = new Date(body.fechaInicio)
+                            let projectEndDate = new Date(body.fechaFin)
+                            const project = new Project(
+                                body.nombre,
+                                body.responsable,
+                                determineProjectStatus(projectStartDate, projectEndDate),
+                                projectStartDate,
+                                projectEndDate
+                            )
+                            setProjects([project])
+                        }
+                    }
+                } catch (error) {
+                    console.log(error)
+                }
             }
         }
 
         if(isAdmin)
             fetchProjectsForAdmin()
         else
-            getProjectForCollaborator()
+            fetchProjectForCollaborator()
     }, []);
 
     // Set results amount
