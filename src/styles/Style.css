@@ -38,3 +38,7 @@
     scrollbar-width: thin;
     scrollbar-color: #2292D4 #FFFFFF;
 }
+
+.custom-min-vh-100{
+    min-height: calc(100vh - 13.75rem);
+}
