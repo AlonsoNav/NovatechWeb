@@ -7,6 +7,7 @@ import ToastComponent from "../../components/ToastComponent.jsx";
 import {deleteRequest, getRequest} from "../../controllers/Database.jsx";
 import Project from "../../models/Project.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
+import {determineProjectStatus} from "../../controllers/BusinessLogic.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -22,12 +23,13 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // React imports
 import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import DatePicker from 'react-datepicker';
 
 const Projects = () => {
     //
     const today = new Date();
+    const navigate = useNavigate();
     const [resultsAmount, setResultsAmount] = useState(0)
     const [selectedProject, setSelectedProject] = useState({})
     const [projects, setProjects] = useState([])
@@ -48,15 +50,6 @@ const Projects = () => {
     const [toastBg, setToastBg] = useState('danger')
 
     // Fetch data
-    const determineProjectStatus = (startDate, endDate) => {
-        if (today < startDate)
-            return "Not started"
-        else if (today < endDate)
-            return "Started"
-        else
-            return "Finished"
-    }
-
     useEffect(() => {
         const fetchProjectsForAdmin = async () => {
             try {
@@ -171,7 +164,7 @@ const Projects = () => {
     }
 
     const projectCards = filteredProjects.map((project, index) => (
-        <Col key={`project_card_${index}`}>
+        <Col key={`project_card_${index}`} onClick={() => navigate(`/projects/${project.name}`)}>
             <Card className={"bg-secondary color-secondary text-start"}>
                 <Card.Body>
                     <Row className={"mb-2"}>

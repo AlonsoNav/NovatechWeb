@@ -10,6 +10,7 @@ import Projects from "./views/projects/Projects.jsx"
 import Collaborators from "./views/collaborators/admin/Collaborators.jsx";
 import CollaboratorsAdd from "./views/collaborators/admin/CollaboratorsAdd.jsx";
 import ProjectsAdd from "./views/projects/admin/ProjectsAdd.jsx";
+import ProjectIndividual from "./views/projects/ProjectIndividual.jsx";
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/collaborators/add" element={<ProtectedRoute>{renderWithHeader(CollaboratorsAdd)}</ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
                 <Route path="/projects/add" element={<ProtectedRoute>{renderWithHeader(ProjectsAdd)}</ProtectedRoute>} />
+                <Route path="/projects/:projectName" element={<ProtectedRoute>{renderWithHeader(ProjectIndividual)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>
