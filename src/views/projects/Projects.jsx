@@ -194,7 +194,7 @@ const Projects = () => {
                         <Col className={"col-auto"}>
                             {isAdmin &&
                                 <button className="btn btn-sm btn-danger"
-                                        onClick={() => handleDelete(project)}>
+                                        onClick={(event) => handleDelete(event, project)}>
                                     <FontAwesomeIcon icon={faTrash}/>
                                 </button>
                             }
@@ -230,7 +230,8 @@ const Projects = () => {
     ))
 
     // Delete project
-    const handleDelete = (project) => {
+    const handleDelete = (event, project) => {
+        event.stopPropagation()
         setSelectedProject(project)
         setShowDeleteModal(true)
     }
