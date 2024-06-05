@@ -31,7 +31,7 @@ const ProjectIndividual = () => {
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
-    const [toastBg, setToastBg] = useState("")
+    const [toastBg, setToastBg] = useState("danger")
 
     // Fetch project data
     useEffect(() => {
@@ -56,7 +56,9 @@ const ProjectIndividual = () => {
                             body.responsable,
                             determineProjectStatus(projectStartDate, projectEndDate),
                             projectStartDate,
-                            projectEndDate
+                            projectEndDate,
+                            body.presupuesto,
+                            body.descripcion
                         )
                         setProject(project)
                     }
@@ -71,30 +73,31 @@ const ProjectIndividual = () => {
 
 
     return (
-        <Container fluid className={"m-header p-3"}>
+        <Container fluid className={"m-header"}>
             <ToastComponent
                 message={toastMessage}
                 show={showToast}
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
             />
-            <Row>
+            <Row className={"px-3 pt-3"}>
                 <Col className={"text-start"}>
                     <h1 className={"h1"}>{project.name}</h1>
                     <p>Status: {project.status} - Start date: {project.startDate ? project.startDate.toLocaleDateString() : 'Loading...'}</p>
                 </Col>
             </Row>
             <Row>
-                <Col>
+                <Col className={"p-0"}>
                     <Tabs
                         activeKey={key}
                         onSelect={(k) => setKey(k)}
+                        className={"px-2"}
                     >
                         <Tab eventKey="collaborators" title="Collaborators">
                             <ProjectCollaborators />
                         </Tab>
                         <Tab eventKey="information" title="Information">
-                            <ProjectInformation />
+                            <ProjectInformation project={project}/>
                         </Tab>
                         <Tab eventKey="logs" title="Logs">
                             <ProjectLogs />
