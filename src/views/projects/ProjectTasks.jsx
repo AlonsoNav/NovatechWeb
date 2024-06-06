@@ -2,7 +2,7 @@
 import '../../styles/Style.css'
 // Local imports
 import TaskCard from "../../components/TaskCard.jsx";
-import {getRequest, postRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest, postRequest} from "../../controllers/Database.jsx";
 import Task from "../../models/Task.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
@@ -22,6 +22,7 @@ import {faAdd, faSearch} from "@fortawesome/free-solid-svg-icons";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
+import ModalComponent from "../../components/ModalComponent.jsx";
 
 const ProjectTasks = ({projectName, responsible}) => {
     ProjectTasks.propTypes = {
@@ -35,6 +36,7 @@ const ProjectTasks = ({projectName, responsible}) => {
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const statuses = ['Todo', 'Doing', 'Done']
     const [collaborators, setCollaborators] = useState([])
+    const [selectedTask, setSelectedTask] = useState({})
     // Filters
     const [myTasks, setMyTasks] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -45,6 +47,7 @@ const ProjectTasks = ({projectName, responsible}) => {
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     // Form data
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
@@ -205,22 +208,61 @@ const ProjectTasks = ({projectName, responsible}) => {
 
     }
 
+    // Delete task
+    const handleDeleteConfirmed = async () => {
+        setShowDeleteModal(false)
+        try{
+            let response = await deleteRequest(`proyectos/${projectName}/tareas/${selectedTask.name}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setTasks(tasks.filter(task => task.name !== selectedTask.name))
+                    setToastBg('info')
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
     // Tasks card
     const TodoCards = filteredTasks.filter(task => task.status === 'Todo').map((task, index) => (
         <Col key={`task_todo_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
+                      onDelete={() => {
+                            setSelectedTask(task)
+                            setShowDeleteModal(true)
+                      }}/>
         </Col>
     ))
 
     const DoingCards = filteredTasks.filter(task => task.status === 'Doing').map((task, index) => (
         <Col key={`task_doing_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
+                      onDelete={() => {
+                          setSelectedTask(task)
+                          setShowDeleteModal(true)
+                      }}/>
         </Col>
     ))
 
     const DoneCards = filteredTasks.filter(task => task.status === 'Done').map((task, index) => (
         <Col key={`task_done_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
+                      onDelete={() => {
+                          setSelectedTask(task)
+                          setShowDeleteModal(true)
+                      }}/>
         </Col>
     ))
 
@@ -240,6 +282,15 @@ const ProjectTasks = ({projectName, responsible}) => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
+            />
+            <ModalComponent
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={() => handleDeleteConfirmed()}
+                show={showDeleteModal}
+                title={"Confirm Task Delete"}
+                message={`Are you sure you want to delete the task ${selectedTask.name}?`}
+                confirmButtonText={"Delete"}
+                confirmButtonVariant={"danger"}
             />
             <Modal show={showFormModal} onHide={() => setShowFormModal(false)}>
                 <Modal.Header closeButton>
