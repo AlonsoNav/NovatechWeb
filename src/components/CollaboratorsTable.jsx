@@ -12,7 +12,7 @@ import {useEffect, useState} from "react";
 const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProjectColumn = true, showEditButton = true }) => {
     CollaboratorsTable.propTypes = {
         collaborators: PropTypes.array.isRequired,
-        handleEdit: PropTypes.func.isRequired,
+        handleEdit: PropTypes.func,
         handleDelete: PropTypes.func.isRequired,
         showProjectColumn: PropTypes.bool,
         showEditButton: PropTypes.bool
