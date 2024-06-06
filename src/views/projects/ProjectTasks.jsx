@@ -2,7 +2,7 @@
 import '../../styles/Style.css'
 // Local imports
 import TaskCard from "../../components/TaskCard.jsx";
-import {deleteRequest, getRequest, postRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest, postRequest, putRequest} from "../../controllers/Database.jsx";
 import Task from "../../models/Task.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
@@ -52,7 +52,6 @@ const ProjectTasks = ({projectName, responsible}) => {
     // Form data
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
-    const [status, setStatus] = useState('')
     const [collaborator, setCollaborator] = useState('')
     const [storyPoints, setStoryPoints] = useState('')
 
@@ -206,10 +205,40 @@ const ProjectTasks = ({projectName, responsible}) => {
         }
     }
 
-    // Edit task
-    const onDragEnd = (result) => {
-        // TODO: Actualizar el estado de las tareas aquí
-    };
+    // Edit status task
+    const onDragEnd = async (result) => {
+        const {destination, source, draggableId} = result
+        if (!destination)
+            return
+        const newStatus = destination.droppableId
+        setTasks(prevTasks => prevTasks.map(task => task.id === draggableId ? {...task, status: newStatus} : task));
+
+        let payload = {
+            estadoTarea: newStatus
+        }
+        try{
+            let response = await putRequest(payload, `proyectos/${projectName}/tareas/${draggableId}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setTasks(prevTasks => prevTasks.map(task => task.id === draggableId ? {...task, status: source.droppableId} : task));
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg("danger")
+                    setTasks(prevTasks => prevTasks.map(task => task.id === draggableId ? {...task, status: source.droppableId} : task));
+                } else
+                    setToastBg("info")
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
 
     const editTask = () => {
 
@@ -276,10 +305,6 @@ const ProjectTasks = ({projectName, responsible}) => {
         ))
 
     // Selector options
-    const statusOptions = statuses.map((status, index) => (
-        <option key={`status_${index}`} label={status} value={status}></option>
-    ))
-
     const collaboratorOptions = collaborators.map((collaborator, index) => (
         <option key={`collaborator_${index}`} label={collaborator} value={collaborator}></option>
     ))
@@ -370,16 +395,6 @@ const ProjectTasks = ({projectName, responsible}) => {
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
-                            {!isAddForm &&
-                                <Col>
-                                    <Form.Group className={"mb-3"}>
-                                        <Form.Label>Status</Form.Label>
-                                        <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
-                                            {statusOptions}
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                            }
                         </Row>
                         <div className={"text-end"}>
                             <button type="submit" className={"btn btn-primary mt-5"}>{isAddForm ? "Add" : "Edit"} task</button>
@@ -433,7 +448,7 @@ const ProjectTasks = ({projectName, responsible}) => {
                 </Col>
             </Row>
             <Row className={"px-3 pt-3"} md={3} xs={1}>
-                <DragDropContext>
+                <DragDropContext onDragEnd={onDragEnd}>
                     {kanban}
                 </DragDropContext>
             </Row>
