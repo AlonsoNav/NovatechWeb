@@ -73,6 +73,7 @@ const ProjectTasks = ({projectName, responsible}) => {
                     } else{
                         const tasksMap = body.map(task => {
                             return new Task(
+                                task._id,
                                 task.nombre,
                                 task.responsable,
                                 task.descripcion,
@@ -187,6 +188,7 @@ const ProjectTasks = ({projectName, responsible}) => {
                 else{
                     setToastBg("info")
                     const newTask = new Task(
+                        body._id,
                         name,
                         collaborator,
                         description,
@@ -212,7 +214,7 @@ const ProjectTasks = ({projectName, responsible}) => {
     const handleDeleteConfirmed = async () => {
         setShowDeleteModal(false)
         try{
-            let response = await deleteRequest(`proyectos/${projectName}/tareas/${selectedTask.name}`)
+            let response = await deleteRequest(`proyectos/${projectName}/tareas/${selectedTask.id}`)
 
             if (!response){
                 setToastMessage("Could not connect to the server.")
@@ -224,7 +226,7 @@ const ProjectTasks = ({projectName, responsible}) => {
                 if (!response.ok) {
                     setToastBg('danger')
                 }else{
-                    setTasks(tasks.filter(task => task.name !== selectedTask.name))
+                    setTasks(tasks.filter(task => task.id !== selectedTask.id))
                     setToastBg('info')
                 }
                 setToastMessage(body.message)

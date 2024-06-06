@@ -1,5 +1,6 @@
 class Task {
-    constructor(name, responsible, description, storyPoints, status) {
+    constructor(id, name, responsible, description, storyPoints, status) {
+        this.id = id
         this.name = name
         this.responsible = responsible
         this.status = status
