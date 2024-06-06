@@ -2,6 +2,10 @@
 import '../../styles/Style.css'
 // Local imports
 import TaskCard from "../../components/TaskCard.jsx";
+import {getRequest} from "../../controllers/Database.jsx";
+import Task from "../../models/Task.jsx";
+import ToastComponent from "../../components/ToastComponent.jsx";
+import {useAuth} from "../../contexts/AuthContext.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -15,55 +19,135 @@ import ToggleButton from "react-bootstrap/ToggleButton";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faSearch} from "@fortawesome/free-solid-svg-icons";
 // React imports
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import PropTypes from "prop-types";
 
-
-const ProjectTasks = () => {
+const ProjectTasks = ({projectName, responsible}) => {
+    ProjectTasks.propTypes = {
+        projectName: PropTypes.string.isRequired,
+        responsible: PropTypes.string.isRequired
+    }
     // Data
-    const [tasks, setTask] = useState([{name: "Task 1", responsible: "User 1", description: "Description 1", storyPoints: 1, state:'Todo'},
-        {name: "Task 2", responsible: "User 2", description: "Description 2", storyPoints: 2, state:'Doing'},
-        {name: "Task 3", responsible: "User 3", description: "Description 3", storyPoints: 3, state:'Done'},
-        {name: "Task 1", responsible: "User 1", description: "Description 1", storyPoints: 1, state:'Todo'},
-        {name: "Task 2", responsible: "User 2", description: "Description 2", storyPoints: 2, state:'Doing'},
-        {name: "Task 3", responsible: "User 3", description: "Description 3", storyPoints: 3, state:'Done'},
-        {name: "Task 1", responsible: "User 1", description: "Description 1", storyPoints: 1, state:'Todo'},
-        {name: "Task 2", responsible: "User 2", description: "Description 2", storyPoints: 2, state:'Doing'},
-        {name: "Task 3", responsible: "User 3", description: "Description 3", storyPoints: 3, state:'Done'}])
+    const user = JSON.parse(localStorage.getItem('user'))
+    const [tasks, setTasks] = useState([])
+    const { isAdmin } = useAuth();
+    const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     // Filters
     const [myTasks, setMyTasks] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [filteredTasks, setFilteredTasks] = useState([])
+    // Components
+    const [showToast, setShowToast] = useState(false)
+    const [toastMessage, setToastMessage] = useState('')
+    const [toastBg, setToastBg] = useState('danger')
+
+    // Fetch data
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await getRequest(`proyectos/${projectName}/tareas`)
+
+                if (!response){
+                    setToastMessage("Could not connect to the server.")
+                    setShowToast(true)
+                }
+                else {
+                    const body = await response.json()
+                    if (!response.ok) {
+                        setToastMessage(body.message)
+                        setShowToast(true)
+                    } else{
+                        const tasksMap = body.map(task => {
+                            return new Task(
+                                task.nombre,
+                                task.responsable,
+                                task.descripcion,
+                                task.storyPoints,
+                                task.estado
+                            )
+                        })
+                        setTasks(tasksMap)
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        fetchTasks()
+    }, [projectName]);
+
+    useEffect(() => {
+        if (isAdmin || responsible === user.correo)
+            setIsAdminOrResponsible(true)
+    }, [responsible]);
+
+    // Set filters
+    useEffect(() => {
+        const filteredTasks = tasks.filter(task => {
+            return filterTasksBySearchTerm(task) && filterTasksByMyTasks(task)
+        })
+
+        setFilteredTasks(filteredTasks)
+    }, [tasks, myTasks, searchTerm])
+
+    const filterTasksBySearchTerm = (task) => {
+        if (searchTerm === "")
+            return true
+        else {
+            const searchTermLowerCase = searchTerm.toLowerCase()
+            const taskNameLowerCase = task.name.toLowerCase()
+
+            return taskNameLowerCase.includes(searchTermLowerCase)
+        }
+    }
+
+    const filterTasksByMyTasks = (task) => {
+        if (myTasks)
+            return task.responsible === user.correo
+        else
+            return true
+    }
 
     // Tasks card
-    const TodoCards = tasks.filter(task => task.state === 'Todo').map((task, index) => (
+    const TodoCards = filteredTasks.filter(task => task.status === 'Todo').map((task, index) => (
         <Col key={`task_todo_card_${index}`}>
-            <TaskCard task={task}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
         </Col>
     ))
 
-    const DoingCards = tasks.filter(task => task.state === 'Doing').map((task, index) => (
+    const DoingCards = filteredTasks.filter(task => task.status === 'Doing').map((task, index) => (
         <Col key={`task_doing_card_${index}`}>
-            <TaskCard task={task}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
         </Col>
     ))
 
-    const DoneCards = tasks.filter(task => task.state === 'Done').map((task, index) => (
+    const DoneCards = filteredTasks.filter(task => task.status === 'Done').map((task, index) => (
         <Col key={`task_done_card_${index}`}>
-            <TaskCard task={task}/>
+            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}/>
         </Col>
     ))
 
     return(
         <Container fluid className={"bg-secondary color-secondary custom-min-vh-100"}>
+            <ToastComponent
+                message={toastMessage}
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                bg={toastBg}
+            />
             <Row className={"pt-3 px-3"}>
                 <Col className={"text-start flex-grow-1"}>
                     <h2 className={"h2"}>Tasks</h2>
                 </Col>
-                <Col className={"text-end col-auto mt-1"}>
-                    <Button className={"btn btn-primary justify-content-center"}>
-                        <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
-                        Add Task
-                    </Button>
-                </Col>
+                {isAdminOrResponsible &&
+                    <Col className={"text-end col-auto mt-1"}>
+                        <Button className={"btn btn-primary justify-content-center"}>
+                            <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
+                            Add Task
+                        </Button>
+                    </Col>
+                }
             </Row>
             <Row className={"pt-3 px-3"}>
                 <Col className={"col-auto"}>
@@ -72,7 +156,7 @@ const ProjectTasks = () => {
                         value={"1"}
                         checked={myTasks}
                         type={"checkbox"}
-                        className={myTasks ? "btn-primary active" : "btn-primary"}
+                        className={myTasks ? "btn-primary" : "btn-primary unchecked"}
                         onChange={(e) => setMyTasks(e.currentTarget.checked)}>
                         MyTasks
                     </ToggleButton>

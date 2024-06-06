@@ -6,6 +6,10 @@
     background-color: #EEEAF4 !important;
 }
 
+.bg-tertiary{
+    background-color: #174966 !important;
+}
+
 .bg-info{
     background-color: #2292D4 !important;
 }
@@ -14,7 +18,7 @@
     background-color: #2292D4 !important;
 }
 
-.btn-primary.active {
+.btn-primary.unchecked {
     background-color: transparent !important;
     color: #103246 !important;
     border-color: #103246 !important;

@@ -107,7 +107,7 @@ const ProjectIndividual = () => {
                             <ProjectResources />
                         </Tab>
                         <Tab eventKey="tasks" title="Tasks">
-                            <ProjectTasks />
+                            <ProjectTasks projectName={projectName} responsible={project.responsible}/>
                         </Tab>
                     </Tabs>
                 </Col>
