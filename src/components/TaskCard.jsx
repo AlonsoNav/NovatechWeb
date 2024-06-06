@@ -39,7 +39,7 @@ const TaskCard = ({task, isAdminOrResponsible}) => {
                     <Col className={"flex-grow-1"}>
                         <Card.Text>{task.description}</Card.Text>
                     </Col>
-                    <Col className={"col-auto bg-white rounded-pill me-2 color-quaternary"}>
+                    <Col className={"col-auto bg-white rounded-pill me-2 color-quaternary align-self-end"}>
                         {task.storyPoints}
                     </Col>
                 </Row>

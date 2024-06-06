@@ -2,7 +2,7 @@
 import '../../styles/Style.css'
 // Local imports
 import TaskCard from "../../components/TaskCard.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../controllers/Database.jsx";
 import Task from "../../models/Task.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
@@ -115,6 +115,12 @@ const ProjectTasks = ({projectName, responsible}) => {
             setIsAdminOrResponsible(true)
     }, [responsible]);
 
+    // Setting the collaborator by default
+    useEffect(() => {
+        if(collaborators.length > 0)
+            setCollaborator(collaborators[0])
+    }, [collaborators]);
+
     // Set filters
     useEffect(() => {
         const filteredTasks = tasks.filter(task => {
@@ -140,6 +146,63 @@ const ProjectTasks = ({projectName, responsible}) => {
             return task.responsible === user.correo
         else
             return true
+    }
+
+    // Submit form
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const form = e.currentTarget
+        if(!form.checkValidity())
+            return
+        if (isAddForm)
+            addTask()
+        else
+            editTask()
+    }
+
+    // Adding task
+    const addTask = async () => {
+        let payload = {
+            nombre: name,
+            correoResponsable: responsible,
+            storyPoints: storyPoints,
+            descripcion: description
+        }
+        try{
+            let response = await postRequest(payload, `proyectos/${projectName}/tareas`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg("danger")
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else{
+                    setToastBg("info")
+                    const newTask = new Task(
+                        name,
+                        collaborator,
+                        description,
+                        storyPoints,
+                        'Todo' // Default status for a new task
+                    )
+                    setTasks(prevTasks => [...prevTasks, newTask])
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
+    // Edit task
+    const editTask = () => {
+
     }
 
     // Tasks card
@@ -183,7 +246,7 @@ const ProjectTasks = ({projectName, responsible}) => {
                     <Modal.Title>{isAddForm ? "Add" : "Edit"} Task</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Form noValidate>
+                    <Form noValidate onSubmit={handleSubmit}>
                         <Row md={2} xs={1}>
                             <Col>
                                 <Form.Group className={"mb-3"}>
