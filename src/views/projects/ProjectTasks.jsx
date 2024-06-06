@@ -6,6 +6,7 @@ import {deleteRequest, getRequest, postRequest} from "../../controllers/Database
 import Task from "../../models/Task.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
+import ModalComponent from "../../components/ModalComponent.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -22,7 +23,7 @@ import {faAdd, faSearch} from "@fortawesome/free-solid-svg-icons";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import ModalComponent from "../../components/ModalComponent.jsx";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const ProjectTasks = ({projectName, responsible}) => {
     ProjectTasks.propTypes = {
@@ -206,6 +207,10 @@ const ProjectTasks = ({projectName, responsible}) => {
     }
 
     // Edit task
+    const onDragEnd = (result) => {
+        // TODO: Actualizar el estado de las tareas aquí
+    };
+
     const editTask = () => {
 
     }
@@ -237,36 +242,38 @@ const ProjectTasks = ({projectName, responsible}) => {
         }
     }
 
-    // Tasks card
-    const TodoCards = filteredTasks.filter(task => task.status === 'Todo').map((task, index) => (
-        <Col key={`task_todo_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
-                      onDelete={() => {
-                            setSelectedTask(task)
-                            setShowDeleteModal(true)
-                      }}/>
-        </Col>
-    ))
-
-    const DoingCards = filteredTasks.filter(task => task.status === 'Doing').map((task, index) => (
-        <Col key={`task_doing_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
-                      onDelete={() => {
-                          setSelectedTask(task)
-                          setShowDeleteModal(true)
-                      }}/>
-        </Col>
-    ))
-
-    const DoneCards = filteredTasks.filter(task => task.status === 'Done').map((task, index) => (
-        <Col key={`task_done_card_${index}`}>
-            <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
-                      onDelete={() => {
-                          setSelectedTask(task)
-                          setShowDeleteModal(true)
-                      }}/>
-        </Col>
-    ))
+    // Kanban
+    const kanban = statuses.map((status, index) => (
+            <Col key={`status_${index}`} className={"mb-3"}>
+                <Card className={"bg-white"}>
+                    <Card.Header className={"h3"}>
+                        {status}
+                    </Card.Header>
+                    <Droppable droppableId={status}>
+                        {(provided) => (
+                            <Card.Body ref={provided.innerRef} {...provided.droppableProps}>
+                                <Row md={1} xs={1} className={"g-3"}>
+                                    {filteredTasks.filter(task => task.status === status).map((task, index) => (
+                                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                                            {(provided) => (
+                                                <Col ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                                                    <TaskCard task={task} isAdminOrResponsible={isAdminOrResponsible}
+                                                              onDelete={() => {
+                                                                  setSelectedTask(task)
+                                                                  setShowDeleteModal(true)
+                                                              }}/>
+                                                </Col>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </Row>
+                            </Card.Body>
+                        )}
+                    </Droppable>
+                </Card>
+            </Col>
+        ))
 
     // Selector options
     const statusOptions = statuses.map((status, index) => (
@@ -426,42 +433,9 @@ const ProjectTasks = ({projectName, responsible}) => {
                 </Col>
             </Row>
             <Row className={"px-3 pt-3"} md={3} xs={1}>
-                <Col className={"mb-3"}>
-                    <Card className={"bg-white"}>
-                        <Card.Header className={"h3"}>
-                            To Do
-                        </Card.Header>
-                        <Card.Body>
-                            <Row md={1} xs={1} className={"g-3"}>
-                                {TodoCards}
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col className={"mb-3"}>
-                    <Card className={"bg-white"}>
-                        <Card.Header className={"h3"}>
-                            Doing
-                        </Card.Header>
-                        <Card.Body>
-                            <Row md={1} xs={1} className={"g-3"}>
-                                {DoingCards}
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col className={"mb-3"}>
-                    <Card className={"bg-white"}>
-                        <Card.Header className={"h3"}>
-                            Done
-                        </Card.Header>
-                        <Card.Body>
-                            <Row md={1} xs={1} className={"g-3"}>
-                                {DoneCards}
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                <DragDropContext>
+                    {kanban}
+                </DragDropContext>
             </Row>
         </Container>
     )
