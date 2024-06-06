@@ -15,6 +15,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Card from "react-bootstrap/Card";
 import ToggleButton from "react-bootstrap/ToggleButton";
+import Modal from "react-bootstrap/Modal";
 // Fontawesome imports
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -32,14 +33,23 @@ const ProjectTasks = ({projectName, responsible}) => {
     const [tasks, setTasks] = useState([])
     const { isAdmin } = useAuth();
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
+    const statuses = ['Todo', 'Doing', 'Done']
+    const [collaborators, setCollaborators] = useState([])
     // Filters
     const [myTasks, setMyTasks] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [filteredTasks, setFilteredTasks] = useState([])
     // Components
+    const [isAddForm, setIsAddForm] = useState(true) // If it's false, it's an edit form
+    const [showFormModal, setShowFormModal] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
+    // Form data
+    const [name, setName] = useState('')
+    const [description, setDescription] = useState('')
+    const [status, setStatus] = useState('')
+    const [collaborator, setCollaborator] = useState('')
 
     // Fetch data
     useEffect(() => {
@@ -74,7 +84,29 @@ const ProjectTasks = ({projectName, responsible}) => {
             }
         }
 
+        const fetchCollaborators = async () => {
+            try {
+                const response = await getRequest(`proyectos/${projectName}/colab`)
+
+                if (!response){
+                    setToastMessage("Could not connect to the server.")
+                    setShowToast(true)
+                }
+                else {
+                    const body = await response.json()
+                    if (!response.ok) {
+                        setToastMessage(body.message)
+                        setShowToast(true)
+                    } else
+                        setCollaborators(body.map(collaborator => collaborator.correo))
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
         fetchTasks()
+        fetchCollaborators()
     }, [projectName]);
 
     useEffect(() => {
@@ -128,6 +160,15 @@ const ProjectTasks = ({projectName, responsible}) => {
         </Col>
     ))
 
+    // Selector options
+    const statusOptions = statuses.map((status, index) => (
+        <option key={`status_${index}`} label={status} value={status}></option>
+    ))
+
+    const collaboratorOptions = collaborators.map((collaborator, index) => (
+        <option key={`collaborator_${index}`} label={collaborator} value={collaborator}></option>
+    ))
+
     return(
         <Container fluid className={"bg-secondary color-secondary custom-min-vh-100"}>
             <ToastComponent
@@ -136,13 +177,84 @@ const ProjectTasks = ({projectName, responsible}) => {
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
             />
+            <Modal show={showFormModal} onHide={() => setShowFormModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>{isAddForm ? "Add" : "Edit"} Task</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form noValidate>
+                        <Row md={2} xs={1}>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter the name of the task..."
+                                        maxLength={50}
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                        isInvalid={name.length === 0}
+                                    />
+                                    <Form.Control.Feedback type='invalid'>
+                                        Please enter a valid name.
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Collaborator</Form.Label>
+                                    <Form.Select value={collaborator} onChange={(e) => setCollaborator(e.target.value)}>
+                                        {collaboratorOptions}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Description</Form.Label>
+                                    <textarea
+                                        className="form-control"
+                                        rows={2}
+                                        placeholder="Enter the description of the task..."
+                                        value={description}
+                                        onChange={(e) => {setDescription(e.target.value)}}
+                                        maxLength={100}
+                                        required
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        {!isAddForm &&
+                            <Row md={2} xs={1}>
+                                <Col>
+                                    <Form.Group className={"mb-3"}>
+                                        <Form.Label>Status</Form.Label>
+                                        <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                                            {statusOptions}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        }
+                        <div className={"text-end"}>
+                            <button type="submit" className={"btn btn-primary mt-5"}>{isAddForm ? "Add" : "Edit"} task</button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
             <Row className={"pt-3 px-3"}>
                 <Col className={"text-start flex-grow-1"}>
                     <h2 className={"h2"}>Tasks</h2>
                 </Col>
                 {isAdminOrResponsible &&
                     <Col className={"text-end col-auto mt-1"}>
-                        <Button className={"btn btn-primary justify-content-center"}>
+                        <Button className={"btn btn-primary justify-content-center"}
+                                onClick={() => {
+                                    setIsAddForm(true)
+                                    setShowFormModal(true)
+                                }}>
                             <FontAwesomeIcon icon={faAdd} className={"me-2"}/>
                             Add Task
                         </Button>
