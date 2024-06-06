@@ -31,7 +31,6 @@ const ProjectIndividual = () => {
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
-    const [toastBg, setToastBg] = useState("danger")
 
     // Fetch project data
     useEffect(() => {
@@ -78,7 +77,6 @@ const ProjectIndividual = () => {
                 message={toastMessage}
                 show={showToast}
                 onClose={() => setShowToast(false)}
-                bg={toastBg}
             />
             <Row className={"px-3 pt-3"}>
                 <Col className={"text-start"}>
