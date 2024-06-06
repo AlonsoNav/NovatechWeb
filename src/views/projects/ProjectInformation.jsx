@@ -40,6 +40,8 @@ const ProjectInformation = ({project}) => {
 
     // Get project data
     useEffect(() => {
+        if(Object.keys(project).length === 0) // If the project is empty, return
+            return
         const getProjectData = () => {
             setBudget(project.budget)
             setResponsible(project.responsible)
