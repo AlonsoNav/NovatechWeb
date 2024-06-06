@@ -14,12 +14,26 @@
     background-color: #2292D4 !important;
 }
 
+.btn-primary.active {
+    background-color: transparent !important;
+    color: #103246 !important;
+    border-color: #103246 !important;
+}
+
 .color-primary{
     color: #2292D4;
 }
 
 .color-secondary{
     color: #103246;
+}
+
+.color-tertiary{
+    color: #FFFFFF;
+}
+
+.color-quaternary{
+    color: #000000;
 }
 
 .color-quinary{
