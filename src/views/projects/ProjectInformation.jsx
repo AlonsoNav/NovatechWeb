@@ -71,7 +71,7 @@ const ProjectInformation = ({project}) => {
                         setShowToast(true)
                     } else {
                         let collaboratorEmails = body.map(collaborator => collaborator.correo)
-                        collaboratorEmails.unshift(responsible)
+                        collaboratorEmails.unshift(project.responsible)
                         setCollaboratorsAvailable(collaboratorEmails)
                     }
                 }
