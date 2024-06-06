@@ -9,18 +9,18 @@ import {useEffect, useState} from "react";
 import { Link } from 'react-router-dom'
 // Font Awesome imports
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAdd, faSearch, faEdit, faTrash, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faSearch, faTrash, faFilter } from '@fortawesome/free-solid-svg-icons'
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form"
 import InputGroup from "react-bootstrap/InputGroup"
-import Table from "react-bootstrap/Table"
 import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
 import Modal from "react-bootstrap/Modal";
 import {validateEmail, validatePhone} from "../../../controllers/InputValidation.jsx";
+import CollaboratorsTable from "../../../components/CollaboratorsTable.jsx";
 
 const Collaborators = () => {
     //
@@ -28,15 +28,13 @@ const Collaborators = () => {
     const [selectedCollaborator, setSelectedCollaborator] = useState({})
     const [collaborators, setCollaborators] = useState([])
     // Filters
-    const [departments, setDepartments] = useState(["Accountability", "Administration", "HR", "IT"])
+    const departments = ["Accountability", "Administration", "HR", "IT"]
     const [projects, setProjects] = useState([])
     const [selectedDepartments, setSelectedDepartments] = useState([])
     const [selectedProjects, setSelectedProjects] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [filteredCollaborators, setFilteredCollaborators] = useState([])
-    // Sort
-    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
-    const [sortedCollaborators, setSortedCollaborators] = useState([]);
+
     // Components
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -255,53 +253,6 @@ const Collaborators = () => {
         }
     }
 
-    // Sort table
-    const requestSort = (key) => {
-        let direction = 'ascending'
-        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending'
-        }
-        setSortConfig({ key, direction })
-    }
-
-    useEffect(() => {
-        let sortedCollaborators = [...filteredCollaborators];
-        sortedCollaborators.sort((a, b) => {
-            let aValue = a[sortConfig.key] == null ? "Free" : a[sortConfig.key]
-            let bValue = b[sortConfig.key] == null ? "Free" : b[sortConfig.key]
-            if (aValue < bValue) {
-                return sortConfig.direction === 'ascending' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return sortConfig.direction === 'ascending' ? 1 : -1;
-            }
-            return 0;
-        });
-        setSortedCollaborators(sortedCollaborators);
-    }, [sortConfig, filteredCollaborators]);
-
-    // Table items
-    const collaboratorItems = sortedCollaborators.map((collaborator, index) => (
-        <tr key={index}>
-            <td>{collaborator.id}</td>
-            <td>{collaborator.name}</td>
-            <td>{collaborator.email}</td>
-            <td>{collaborator.phone}</td>
-            <td>{collaborator.project != null ? collaborator.project : "Free"}</td>
-            <td>{collaborator.department}</td>
-            <td>
-                <button className="btn btn-sm btn-primary me-2"
-                        onClick={() => handleEdit(collaborator)}>
-                    <FontAwesomeIcon icon={faEdit}/>
-                </button>
-                <button className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(collaborator)}>
-                    <FontAwesomeIcon icon={faTrash}/>
-                </button>
-            </td>
-        </tr>
-    ))
-
     // Checkboxes filters
     const clearFilters = () => {
         setSelectedDepartments([])
@@ -510,22 +461,7 @@ const Collaborators = () => {
         </Row>
         <Row>
             <Col className={"table-responsive text-start"}>
-                <Table striped bordered hover>
-                    <thead>
-                    <tr>
-                        <th onClick={() => requestSort('id')}>Id</th>
-                        <th onClick={() => requestSort('name')}>Name</th>
-                        <th onClick={() => requestSort('email')}>Email</th>
-                        <th onClick={() => requestSort('phone')}>Phone</th>
-                        <th onClick={() => requestSort('project')}>Project</th>
-                        <th onClick={() => requestSort('department')}>Department</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        {collaboratorItems}
-                    </tbody>
-                </Table>
+                <CollaboratorsTable  collaborators={filteredCollaborators} handleDelete={handleDelete} handleEdit={handleEdit}/>
             </Col>
         </Row>
       </Container>
