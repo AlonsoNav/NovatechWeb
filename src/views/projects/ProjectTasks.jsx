@@ -49,6 +49,7 @@ const ProjectTasks = ({projectName, responsible}) => {
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
     const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
     // Form data
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
@@ -241,7 +242,40 @@ const ProjectTasks = ({projectName, responsible}) => {
     }
 
     const editTask = () => {
+        setShowFormModal(false)
+        setShowEditModal(true)
+    }
 
+    const handleEditConfirmed = async () => {
+        setShowEditModal(false)
+        let payload = {
+            nombreNuevo: name,
+            correoResponsable: collaborator,
+            storyPoints: storyPoints,
+            descripcion: description
+        }
+        try{
+            let response = await putRequest(payload, `proyectos/${projectName}/tareas/${selectedTask.id}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setTasks(tasks.map(task => task.id === selectedTask.id ? {...task, name, responsible: collaborator, storyPoints, description} : task))
+                    setToastBg('info')
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     // Delete task
@@ -290,6 +324,15 @@ const ProjectTasks = ({projectName, responsible}) => {
                                                               onDelete={() => {
                                                                   setSelectedTask(task)
                                                                   setShowDeleteModal(true)
+                                                              }}
+                                                              onEdit={() => {
+                                                                    setIsAddForm(false)
+                                                                    setSelectedTask(task)
+                                                                    setName(task.name)
+                                                                    setDescription(task.description)
+                                                                    setCollaborator(task.responsible)
+                                                                    setStoryPoints(task.storyPoints)
+                                                                    setShowFormModal(true)
                                                               }}/>
                                                 </Col>
                                             )}
@@ -325,6 +368,18 @@ const ProjectTasks = ({projectName, responsible}) => {
                 message={`Are you sure you want to delete the task ${selectedTask.name}?`}
                 confirmButtonText={"Delete"}
                 confirmButtonVariant={"danger"}
+            />
+            <ModalComponent
+                onClose={() => {
+                    setShowEditModal(false)
+                    setShowFormModal(true)
+                }}
+                onConfirm={() => handleEditConfirmed()}
+                show={showEditModal}
+                title={"Save changes"}
+                message={`Are you sure you want to keep these changes for the task ${selectedTask.name}?`}
+                confirmButtonText={"Save changes"}
+                confirmButtonVariant={"primary"}
             />
             <Modal show={showFormModal} onHide={() => setShowFormModal(false)}>
                 <Modal.Header closeButton>

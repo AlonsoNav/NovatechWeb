@@ -11,11 +11,12 @@ import {faTrash, faEdit} from "@fortawesome/free-solid-svg-icons";
 // React imports
 import PropTypes from "prop-types";
 
-const TaskCard = ({task, isAdminOrResponsible, onDelete}) => {
+const TaskCard = ({task, isAdminOrResponsible, onDelete, onEdit}) => {
     TaskCard.propTypes = {
         task: PropTypes.object.isRequired,
         isAdminOrResponsible: PropTypes.bool.isRequired,
-        onDelete: PropTypes.func.isRequired
+        onDelete: PropTypes.func.isRequired,
+        onEdit: PropTypes.func.isRequired
     }
     return(
         <Card className={"bg-tertiary color-tertiary text-start"}>
@@ -27,7 +28,7 @@ const TaskCard = ({task, isAdminOrResponsible, onDelete}) => {
                     </Col>
                     {isAdminOrResponsible &&
                         <Col className={"col-auto"}>
-                            <Button className="btn btn-sm me-2">
+                            <Button className="btn btn-sm me-2" onClick={onEdit}>
                                 <FontAwesomeIcon icon={faEdit}/>
                             </Button>
                             <button className="btn btn-sm btn-danger" onClick={onDelete}>
