@@ -50,6 +50,7 @@ const ProjectTasks = ({projectName, responsible}) => {
     const [description, setDescription] = useState('')
     const [status, setStatus] = useState('')
     const [collaborator, setCollaborator] = useState('')
+    const [storyPoints, setStoryPoints] = useState('')
 
     // Fetch data
     useEffect(() => {
@@ -203,10 +204,21 @@ const ProjectTasks = ({projectName, responsible}) => {
                             </Col>
                             <Col>
                                 <Form.Group className={"mb-3"}>
-                                    <Form.Label>Collaborator</Form.Label>
-                                    <Form.Select value={collaborator} onChange={(e) => setCollaborator(e.target.value)}>
-                                        {collaboratorOptions}
-                                    </Form.Select>
+                                    <Form.Label>Story points</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter the story points of the task..."
+                                        maxLength={2}
+                                        value={storyPoints}
+                                        onChange={(e) => {
+                                            if (!isNaN(e.target.value)) setStoryPoints(e.target.value)
+                                        }}
+                                        required
+                                        isInvalid={storyPoints.length <= 0}
+                                    />
+                                    <Form.Control.Feedback type='invalid'>
+                                        Please enter a valid number for the story points.
+                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -226,8 +238,16 @@ const ProjectTasks = ({projectName, responsible}) => {
                                 </Form.Group>
                             </Col>
                         </Row>
-                        {!isAddForm &&
-                            <Row md={2} xs={1}>
+                        <Row md={2} xs={1}>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Collaborator</Form.Label>
+                                    <Form.Select value={collaborator} onChange={(e) => setCollaborator(e.target.value)}>
+                                        {collaboratorOptions}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            {!isAddForm &&
                                 <Col>
                                     <Form.Group className={"mb-3"}>
                                         <Form.Label>Status</Form.Label>
@@ -236,8 +256,8 @@ const ProjectTasks = ({projectName, responsible}) => {
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>
-                            </Row>
-                        }
+                            }
+                        </Row>
                         <div className={"text-end"}>
                             <button type="submit" className={"btn btn-primary mt-5"}>{isAddForm ? "Add" : "Edit"} task</button>
                         </div>
