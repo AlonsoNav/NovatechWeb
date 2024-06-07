@@ -50,3 +50,21 @@ export const filterByDateRange = (item, startDate, endDate) => {
 
     return date >= selectedStartDate && date <= selectedEndDate;
 }
+
+export const filterByCheckbox = (item, selectedItems) => {
+    if (selectedItems.length === 0)
+        return true
+    else
+        return selectedItems.includes(item)
+}
+
+export const filterBySearchTerm = (item, searchTerm) => {
+    if (searchTerm === "")
+        return true
+    else {
+        const searchTermLowerCase = searchTerm.toLowerCase()
+        const itemLowerCase = item.toLowerCase()
+
+        return itemLowerCase.includes(searchTermLowerCase)
+    }
+}

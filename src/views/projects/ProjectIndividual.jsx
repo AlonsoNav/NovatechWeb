@@ -104,7 +104,7 @@ const ProjectIndividual = () => {
                             <ProjectMeetings projectName={projectName} responsible={project.responsible || ""}/>
                         </Tab>
                         <Tab eventKey="resources" title="Resources">
-                            <ProjectResources />
+                            <ProjectResources projectName={projectName} responsible={project.responsible || ""}/>
                         </Tab>
                         <Tab eventKey="tasks" title="Tasks">
                             <ProjectTasks projectName={projectName} responsible={project.responsible || ""}/>
