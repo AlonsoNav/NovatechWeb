@@ -2,7 +2,7 @@
 import "../styles/Style.css"
 // Fontawesome imports
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons'
+import {faEdit, faEye, faEyeSlash, faTrash} from '@fortawesome/free-solid-svg-icons'
 // Bootstrap imports
 import Table from "react-bootstrap/Table"
 // React imports
@@ -11,14 +11,12 @@ import {useEffect, useState} from "react";
 // Local imports
 import {useAuth} from "../contexts/AuthContext.jsx";
 
-const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProjectColumn = true,
-                                showEditButton = true , isResponsible = false, responsible = ""}) => {
+const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, isForProject = false, isResponsible = false, responsible = ""}) => {
     CollaboratorsTable.propTypes = {
         collaborators: PropTypes.array.isRequired,
         handleEdit: PropTypes.func,
         handleDelete: PropTypes.func.isRequired,
-        showProjectColumn: PropTypes.bool,
-        showEditButton: PropTypes.bool,
+        isForProject: PropTypes.bool,
         isResponsible: PropTypes.bool,
         responsible: PropTypes.string
     }
@@ -61,17 +59,24 @@ const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProje
             <td>{collaborator.name}</td>
             <td>{collaborator.email}</td>
             <td>{collaborator.phone}</td>
-            {showProjectColumn && <td>{collaborator.project != null ? collaborator.project : "Free"}</td>}
+            {!isForProject && <td>{collaborator.project != null ? collaborator.project : "Free"}</td>}
             <td>{collaborator.department}</td>
+            {!isForProject &&
+                <td>
+                    <button className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(collaborator)}>
+                        <FontAwesomeIcon icon={collaborator.status ? faEye : faEyeSlash}/>
+                    </button>
+                </td>
+            }
             {isAdminOrResponsible ?
                 <td>
-                    {showEditButton &&
+                    {!isForProject ?
                         <button className="btn btn-sm btn-primary me-2"
                                 onClick={() => handleEdit(collaborator)}>
                             <FontAwesomeIcon icon={faEdit}/>
-                        </button>
-                    }
-                    {(isAdmin || (isResponsible && responsible !== collaborator.email)) &&
+                        </button> :
+                        (isAdmin || (isResponsible && responsible !== collaborator.email)) &&
                         <button className="btn btn-sm btn-danger"
                                 onClick={() => handleDelete(collaborator)}>
                             <FontAwesomeIcon icon={faTrash}/>
@@ -94,9 +99,10 @@ const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProje
                 <th onClick={() => requestSort('name')}>Name</th>
                 <th onClick={() => requestSort('email')}>Email</th>
                 <th onClick={() => requestSort('phone')}>Phone</th>
-                {showProjectColumn && <th onClick={() => requestSort('project')}>Project</th>}
+                {!isForProject && <th onClick={() => requestSort('project')}>Project</th>}
                 <th onClick={() => requestSort('department')}>Department</th>
-                <th>Actions</th>
+                {!isForProject && <th>Status</th>}
+                <th>{isForProject ? "Delete" : "Edit"}</th>
             </tr>
             </thead>
             <tbody>

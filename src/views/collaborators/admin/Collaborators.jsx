@@ -1,7 +1,7 @@
 // Local imports
 import '../../../styles/Style.css'
 import ModalComponent from "../../../components/ModalComponent.jsx"
-import {deleteRequest, getRequest, putRequest} from "../../../controllers/Database.jsx";
+import {getRequest, putRequest} from "../../../controllers/Database.jsx";
 import ToastComponent from "../../../components/ToastComponent.jsx";
 import Collaborator from "../../../models/Collaborator.jsx";
 import {validateEmail, validatePhone} from "../../../controllers/InputValidation.jsx";
@@ -9,7 +9,7 @@ import CollaboratorsTable from "../../../components/CollaboratorsTable.jsx";
 import {
     filterCollaboratorsByDepartment,
     filterCollaboratorsByProjects,
-    filterCollaboratorsBySearchTerm
+    filterCollaboratorsBySearchTerm, filterCollaboratorsByStatus
 } from "../../../controllers/Filters.jsx";
 // React imports
 import {useEffect, useState} from "react";
@@ -34,12 +34,13 @@ const Collaborators = () => {
     const [collaborators, setCollaborators] = useState([])
     // Filters
     const departments = ["Accountability", "Administration", "HR", "IT"]
+    const statuses = ["Active", "Inactive"]
     const [projects, setProjects] = useState([])
     const [selectedDepartments, setSelectedDepartments] = useState([])
     const [selectedProjects, setSelectedProjects] = useState([])
+    const [selectedStatuses, setSelectedStatuses] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [filteredCollaborators, setFilteredCollaborators] = useState([])
-
     // Components
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -49,6 +50,8 @@ const Collaborators = () => {
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
     // Edit form
+    const [id, setId] = useState('')
+    const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [phone, setPhone] = useState('')
@@ -102,7 +105,8 @@ const Collaborators = () => {
                                 collaborator.correo,
                                 collaborator.telefono,
                                 collaborator.departamento,
-                                collaborator.proyecto != null ? collaborator.proyecto.nombre : null
+                                collaborator.proyecto != null ? collaborator.proyecto.nombre : null,
+                                collaborator.estado
                             )
                         })
                         setCollaborators(collaboratorsMap)
@@ -116,16 +120,11 @@ const Collaborators = () => {
         fetchProjects()
         fetchCollaborators()
     }, [])
-    
-    // Delete collaborator
-    const handleDelete = (collaborator) => {
-        setSelectedCollaborator(collaborator)
-        setShowDeleteModal(true)
-    }
 
-    const handleDeleteConfirmed = async () => {
+    // Request for an edit
+    const editCollaborator = async (payload, isDelete = false) => {
         try{
-            let response = await deleteRequest(`colaboradores/${selectedCollaborator.id}`)
+            let response = await putRequest(payload, `colaboradores/${selectedCollaborator.id}/admin`)
 
             if (!response){
                 setToastMessage("Could not connect to the server.")
@@ -134,11 +133,32 @@ const Collaborators = () => {
             }
             else{
                 const body = await response.json()
-                if (!response.ok) {
-                    setToastBg('danger')
-                }else{
-                    setCollaborators(collaborators.filter(collaborator => collaborator.id !== selectedCollaborator.id))
-                    setToastBg('info')
+                if (!response.ok)
+                    setToastBg("danger")
+                else {
+                    let updatedCollaborators = collaborators.map(collaborator => {
+                        if (collaborator.id === selectedCollaborator.id) {
+                            if (isDelete){
+                                return {
+                                    ...collaborator,
+                                    status: !collaborator.status
+                                }
+                            }else{
+                                return {
+                                    ...collaborator,
+                                    name: name,
+                                    id: id,
+                                    email: email,
+                                    department: department,
+                                    phone: phone,
+                                    project: project === "Free" ? null : project
+                                }
+                            }
+                        }
+                        return collaborator
+                    })
+                    setCollaborators(updatedCollaborators)
+                    setToastBg("info")
                 }
                 setToastMessage(body.message)
                 setShowToast(true)
@@ -146,12 +166,24 @@ const Collaborators = () => {
         }catch (error){
             console.log(error)
         }
+    }
+    
+    // Delete collaborator
+    const handleDelete = (collaborator) => {
+        setSelectedCollaborator(collaborator)
+        setShowDeleteModal(true)
+    }
+
+    const handleDeleteConfirmed = () => {
         setShowDeleteModal(false)
+        editCollaborator({estado: !selectedCollaborator.status}, true)
     }
 
     // Edit collaborator
     const handleEdit = (collaborator) => {
         setSelectedCollaborator(collaborator)
+        setName(collaborator.name)
+        setId(collaborator.id)
         setEmail(collaborator.email)
         setPhone(collaborator.phone)
         setDepartment(collaborator.department)
@@ -171,49 +203,18 @@ const Collaborators = () => {
         setShowConfirmEditModal(true)
     }
 
-    const handleEditConfirmed = async () => {
+    const handleEditConfirmed = () => {
         setShowConfirmEditModal(false)
         let payload = {
+            nombre: name,
+            nuevaCedula: id,
             correo: email,
             departamento: department,
             telefono: phone,
             contrasena: password,
-            nombreProyecto: project
+            nombreProyecto: project === "Free" ? null : project
         }
-        try{
-            let response = await putRequest(payload, `colaboradores/${selectedCollaborator.id}/admin`)
-
-            if (!response){
-                setToastMessage("Could not connect to the server.")
-                setToastBg('danger')
-                setShowToast(true)
-            }
-            else{
-                const body = await response.json()
-                if (!response.ok)
-                    setToastBg("danger")
-                else {
-                    let updatedCollaborators = collaborators.map(collaborator => {
-                        if (collaborator.id === selectedCollaborator.id) {
-                            return {
-                                ...collaborator,
-                                email: email,
-                                department: department,
-                                phone: phone,
-                                project: project === "Free" ? null : project
-                            }
-                        }
-                        return collaborator
-                    })
-                    setCollaborators(updatedCollaborators)
-                    setToastBg("info")
-                }
-                setToastMessage(body.message)
-                setShowToast(true)
-            }
-        }catch (error){
-            console.log(error)
-        }
+        editCollaborator(payload)
     }
 
     // Set results amount
@@ -226,18 +227,27 @@ const Collaborators = () => {
         const filteredCollaborators = collaborators.filter(collaborator => {
             return filterCollaboratorsByProjects(collaborator, selectedProjects)
                 && filterCollaboratorsByDepartment(collaborator, selectedDepartments)
+                && filterCollaboratorsByStatus(collaborator, selectedStatuses)
                 && filterCollaboratorsBySearchTerm(collaborator, searchTerm)
         })
 
         setFilteredCollaborators(filteredCollaborators)
-    }, [collaborators, selectedProjects, selectedDepartments, searchTerm])
+    }, [collaborators, selectedProjects, selectedDepartments, selectedStatuses, searchTerm])
 
 
     // Checkboxes filters
     const clearFilters = () => {
         setSelectedDepartments([])
         setSelectedProjects([])
+        setSelectedStatuses([])
         setSearchTerm('')
+    }
+
+    const handleStatusChange = (status) => {
+        if (selectedStatuses.includes(status))
+            setSelectedStatuses(selectedStatuses.filter(cat => cat !== status)) // If the status is already selected, delete it
+        else
+            setSelectedStatuses([...selectedStatuses, status])
     }
 
     const handleDepartmentChange = (department) => {
@@ -253,6 +263,14 @@ const Collaborators = () => {
         else
             setSelectedProjects([...selectedProjects, project])
     }
+
+    const statusCheckboxes = statuses.map((status, index) => (
+        <Form.Check key={`status_${index}`}
+                    label={status}
+                    checked={selectedStatuses.includes(status)}
+                    onChange={() => handleStatusChange(status)}
+        />
+    ))
 
     const departmentCheckboxes = departments.map((department, index) => (
         <Form.Check key={`department_${index}`}
@@ -291,9 +309,9 @@ const Collaborators = () => {
               onClose={() => setShowDeleteModal(false)}
               onConfirm={() => handleDeleteConfirmed()}
               show={showDeleteModal}
-              title={"Confirm Collaborator Delete"}
-              message={`Are you sure you want to delete the collaborator ${selectedCollaborator.email}?`}
-              confirmButtonText={"Delete"}
+              title={"Confirm Collaborator Deactivate"}
+              message={`Are you sure you want to deactivate the collaborator ${selectedCollaborator.email}?`}
+              confirmButtonText={"Deactivate"}
               confirmButtonVariant={"danger"}
           />
           <ModalComponent
@@ -315,6 +333,34 @@ const Collaborators = () => {
               <Modal.Body>
                   <Form noValidate onSubmit={handleEditSubmit}>
                       <Row md={2} xs={1}>
+                          <Col>
+                              <Form.Group className={"mb-3"}>
+                                  <Form.Label>Id</Form.Label>
+                                  <Form.Control
+                                      type="text"
+                                      placeholder="Enter id..."
+                                      maxLength={9}
+                                      value={id}
+                                      onChange={(e) => {if (!isNaN(e.target.value)) setId(e.target.value)}}
+                                      isInvalid={id.length !==0 && id.length !== 9}
+                                  />
+                                  <Form.Control.Feedback type='invalid'>
+                                      Please enter a valid id.
+                                  </Form.Control.Feedback>
+                              </Form.Group>
+                          </Col>
+                          <Col>
+                              <Form.Group className={"mb-3"}>
+                                  <Form.Label>Name</Form.Label>
+                                  <Form.Control
+                                      type="text"
+                                      placeholder="Enter name..."
+                                      maxLength={30}
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                  />
+                              </Form.Group>
+                          </Col>
                           <Col md={{span:6, order:1}} xs={{order:1}}>
                               <Form.Group className={"mb-3"}>
                                   <Form.Label>Project name</Form.Label>
@@ -388,6 +434,10 @@ const Collaborators = () => {
               </Offcanvas.Header>
               <Offcanvas.Body>
                   <Form>
+                      <Form.Group className="mb-3">
+                          <Form.Label>Status</Form.Label>
+                          {statusCheckboxes}
+                      </Form.Group>
                       <Form.Group className="mb-3">
                           <Form.Label>Department</Form.Label>
                           {departmentCheckboxes}

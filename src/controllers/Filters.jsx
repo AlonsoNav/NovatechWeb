@@ -12,6 +12,13 @@ export const filterCollaboratorsByDepartment = (collaborator, selectedDepartment
         return selectedDepartments.includes(collaborator.department)
 }
 
+export const filterCollaboratorsByStatus = (collaborator, selectedStatuses) => {
+    if (selectedStatuses.length === 0)
+        return true
+    else
+        return selectedStatuses.includes(collaborator.status ? "Active" : "Inactive")
+}
+
 export const filterCollaboratorsBySearchTerm = (collaborator, searchTerm) => {
     if (searchTerm === "")
         return true

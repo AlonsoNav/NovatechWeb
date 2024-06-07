@@ -341,8 +341,7 @@ const ProjectCollaborators = ({projectName, responsible}) => {
                     <CollaboratorsTable
                         collaborators={filteredCollaborators}
                         handleDelete={handleDelete}
-                        showProjectColumn={false}
-                        showEditButton={false}
+                        isForProject={true}
                         isResponsible={isResponsible}
                         responsible={responsible || ""}/>
                 </Col>
