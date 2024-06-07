@@ -28,3 +28,21 @@ export async function getRequest(endpoint) {
         console.log(error);
     }
 }
+
+export async function getRequestParams(endpoint, params = {}) {
+    const requestOptions = {
+        method: 'GET',
+        mode: "cors",
+        headers: {'Content-Type': 'application/json'}
+    };
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${API_URL}${endpoint}${queryString ? `?${queryString}` : ''}`;
+
+    try {
+        const response = await fetch(url, requestOptions);
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+}

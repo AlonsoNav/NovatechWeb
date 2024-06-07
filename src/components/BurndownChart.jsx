@@ -6,12 +6,12 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const BurndownChart = ({totalWeeks, totalStoryPoints, idealProgressRate, actualProgress}) => {
     let labels = [];
-    for (var i=1; i <= totalWeeks; i++) {
+    for (var i=0; i < totalWeeks; i++) {
         labels.push(i.toString())
     }
 
     let progressRate = [];
-    for (var i=totalStoryPoints; i >= 0; i-=idealProgressRate) {
+    for (var i=totalStoryPoints; i >= 0 && idealProgressRate != 0; i-=idealProgressRate) {
         progressRate.push(i)
     }
 

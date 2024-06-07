@@ -5,7 +5,10 @@ import { Container, Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import BurndownChart from '../components/BurndownChart.jsx';
 import BarChart from '../components/BarChart.jsx';
 import { getRequest } from '../controllers/Database.jsx';
-import ModalComponent from '../components/ModalComponent.jsx';
+
+// Reports
+import { Download } from '../controllers/ReportsController.jsx'
+// Reports
 
 const Statistics = () => {
   const [projects, setProjects] = useState([]);
@@ -19,7 +22,12 @@ const Statistics = () => {
   const [idealProgressRate, setIdealProgressRate] = useState(0);
   const [actualProgress, setActualProgress] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
+
+  // Reports
   const [showModal, setShowModal] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  // Reports
 
   const fetchProjects = async () => {
     try {
@@ -89,17 +97,17 @@ const Statistics = () => {
 
   const handleBarChart = (selectedProjectData) => {
     const { tareas } = selectedProjectData;
-    let pendingCount = 0;
-    let progressCount = 0;
-    let finishedCount = 0;
+    let countPending = 0;
+    let countProgress = 0;
+    let countFinished = 0;
     tareas.forEach(tarea => {
-      if (tarea.estado === 'Todo') pendingCount++;
-      else if (tarea.estado === 'Doing') progressCount++;
-      else if (tarea.estado === 'Done') finishedCount++;
+      if (tarea.estado === 'Todo') countPending++;
+      else if (tarea.estado === 'Doing') countProgress++;
+      else if (tarea.estado === 'Done') countFinished++;
     });
-    setCountPending(pendingCount);
-    setCountProgress(progressCount);
-    setCountFinished(finishedCount);
+    setCountPending(countPending);
+    setCountProgress(countProgress);
+    setCountFinished(countFinished);
   };
 
   const handleBurndownChart = (selectedProjectData) => {
@@ -126,20 +134,53 @@ const Statistics = () => {
     }
   };
 
-  const handleReports = (e) => {
+  // Reports
+  const handleFormatChange = (e) => {
+    const format = e.target.value;
+    setSelectedFormat(format);
+  };
+
+  const handleLanguageChange = (e) => {
+    const language = e.target.value;
+    setSelectedLanguage(language);
+  };
+
+  const handleDownload = () => {
+    // const { tareas } = selectedProject;
+    const nombreProyecto = selectedProject; // asumiendo que existe un selectedProject handler
+    // let countPending = 0;
+    // let countProgress = 0;
+    // let countFinished = 0;
+    // tareas.forEach(tarea => {
+    //   if (tarea.estado === 'Todo') countPending++;
+    //   else if (tarea.estado === 'Doing') countProgress++;
+    //   else if (tarea.estado === 'Done') countFinished++;
+    // });
+    // setCountPending(countPending);
+    // setCountProgress(countProgress);
+    // setCountFinished(countFinished);
+    Download(selectedFormat, nombreProyecto, selectedLanguage, countPending, countProgress, countFinished);
+  };
+
+  const handleSend = (e) => {
 
   };
 
   const handleModalShow = () => setShowModal(true);
   const handleModalClose = () => setShowModal(false);
+  // Reports
 
   return (
     <Container fluid className="vw-100 m-header vh-200 bg-secondary">
       <Row className="p-3 color-secondary mb-3">
         <Col><h1>Statistics</h1></Col>
+        {// Reports
+        }
         <div className="d-grid gap-2 mt-5">
-          <Button onClick={handleModalShow} className="btn btn-lg btn-primary">Reports</Button>
+          <Button onClick={handleModalShow} className="btn btn-lg btn-primary">Generate report</Button>
         </div>
+        {// Reports
+        }
       </Row>
       <Row className="mb-3">
         <Col className="d-flex justify-content-center">
@@ -177,55 +218,48 @@ const Statistics = () => {
           </Col>
         </Row>
       )}
+      {// Reports
+      }
       <Modal show={showModal} onHide={handleModalClose}>
           <Modal.Header closeButton>
-              <Modal.Title>Reports</Modal.Title>
+              <Modal.Title>Report</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Row className="color-secondary mb-3">
-              <Col><p>Choose the type of report, the format and the language</p></Col>
+              <Col><p>Choose the the format and the language</p></Col>
             </Row>
             <Row className="color-secondary mb-3">
               <Col className="d-flex justify-content-center">
                 <Form.Group>
-                  <Form.Label>Type</Form.Label>
-                  <Form.Select /*onChange={}*/>
-                    <option value="">Select a format</option>
-                    <option value="collaborators">Collaborators</option>
-                    <option value="project">Project</option>
-                    <option value="allProjects">All projects</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col className="d-flex justify-content-center">
-                <Form.Group>
                   <Form.Label>Format</Form.Label>
-                  <Form.Select /*onChange={}*/>
+                  <Form.Select onChange={handleFormatChange}>
                     <option value="">Select a format</option>
-                    <option value="pdf">PDF</option>
-                    <option value="csv">CSV</option>
-                    <option value="xml">XML</option>
+                    <option value="PDF">PDF</option>
+                    <option value="CSV">CSV</option>
+                    <option value="XML">XML</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col className="d-flex justify-content-center">
                 <Form.Group>
                   <Form.Label>Language</Form.Label>
-                  <Form.Select /*onChange={}*/>
+                  <Form.Select onChange={handleLanguageChange}>
                     <option value="">Select a language</option>
-                    <option value="sp">Spanish</option>
-                    <option value="en">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
           </Modal.Body>
           <Modal.Footer>
-              <Button variant="primary" onClick={handleReports}>Download</Button>
-              <Button variant="primary" onClick={handleReports}>Send</Button>
+              <Button variant="primary" onClick={handleDownload}>Download</Button>
+              <Button variant="primary" onClick={handleSend}>Send</Button>
               <Button variant="secondary" onClick={handleModalClose}>Cancel</Button>
           </Modal.Footer>
       </Modal>
+      {// Reports
+      }
     </Container>
   );
 };
