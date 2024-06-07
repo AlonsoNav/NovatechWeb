@@ -8,6 +8,7 @@ import Header from "./components/Header.jsx";
 import Login from "./views/Login";
 import Profile from "./views/Profile.jsx";
 import Projects from "./views/Projects.jsx"
+import Forum from "./views/Forum/Forum.jsx";
 
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/" element={<Login/>} />
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
+                <Route path="/forum" element={<ProtectedRoute>{renderWithHeader(Forum)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>

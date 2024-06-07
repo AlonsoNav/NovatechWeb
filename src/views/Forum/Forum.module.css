@@ -1,0 +1,38 @@
+.forumContainer {
+    height: auto;
+}
+
+.alignStart {
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.button {
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.65);
+}
+
+.subLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+
+.commentCard > * {
+    text-align: start;
+    padding-left: 20px;
+}
+
+.sendBtn {
+    background-color: #103246 !important;
+    transition: 0.2s all ease-in;
+}
+
+.sendBtn:hover{
+    background-color: white !important;
+    color: #103246 !important;
+}
+
+.sendBtn:active{
+    background-color: #103246 !important;
+    color: white !important;
+}
