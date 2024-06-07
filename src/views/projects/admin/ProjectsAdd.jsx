@@ -56,9 +56,8 @@ const ProjectsAdd = () => {
     }, []);
 
     useEffect(() => {
-        if (collaboratorsAvailable.length > 0) {
+        if (collaboratorsAvailable.length > 0)
             setResponsible(collaboratorsAvailable[0]);
-        }
     }, [collaboratorsAvailable]);
 
     // Form submit

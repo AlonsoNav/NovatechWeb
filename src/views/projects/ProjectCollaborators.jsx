@@ -4,7 +4,7 @@ import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-ic
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
 import CollaboratorsTable from "../../components/CollaboratorsTable.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Collaborator from "../../models/Collaborator.jsx";
 import {filterCollaboratorsByDepartment, filterCollaboratorsBySearchTerm} from "../../controllers/Filters.jsx";
@@ -16,6 +16,7 @@ import Row from "react-bootstrap/Row";
 import InputGroup from "react-bootstrap/InputGroup";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import Form from "react-bootstrap/Form";
+import Modal from "react-bootstrap/Modal";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
@@ -32,6 +33,9 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const departments = ["Accountability", "Administration", "HR", "IT"]
     const [collaborators, setCollaborators] = useState([])
+    const [collaboratorsAvailable, setCollaboratorsAvailable] = useState([])
+    // Form data
+    const [collaborator, setCollaborator] = useState("")
     // Filters
     const [showOffcanvas, setShowOffcanvas] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -44,6 +48,46 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const [toastBg, setToastBg] = useState("danger")
 
     // Fetch data
+    useEffect(() => {
+        const fetchCollaboratorsAvailable = async () => {
+            try {
+                const response = await getRequest("colaboradores/disponibles")
+
+                if (!response){
+                    setToastMessage("Could not connect to the server.")
+                    setShowToast(true)
+                }
+                else {
+                    const body = await response.json()
+                    if (!response.ok) {
+                        setToastMessage(body.message)
+                        setShowToast(true)
+                    } else{
+                        const collaboratorsMap = body.map(collaborator => {
+                            return new Collaborator(
+                                collaborator.cedula,
+                                collaborator.nombre,
+                                collaborator.correo,
+                                collaborator.telefono,
+                                collaborator.departamento
+                            )
+                        })
+                        setCollaboratorsAvailable(collaboratorsMap)
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        fetchCollaboratorsAvailable()
+    }, []);
+
+    useEffect(() => {
+        if (collaboratorsAvailable.length > 0)
+            setCollaborator(collaboratorsAvailable[0].email);
+    }, [collaboratorsAvailable]);
+
     useEffect(() => {
         const fetchCollaborators = async () => {
             try {
@@ -104,6 +148,39 @@ const ProjectCollaborators = ({projectName, responsible}) => {
 
     }
 
+    // Add collaborator
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        let payload = {
+            correoColab: collaborator
+        }
+        try{
+            let response = await postRequest(payload, `proyectos/${projectName}/colab`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg("danger")
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else{
+                    setToastBg("info")
+                    setCollaborators(prevCollaborators => [...prevCollaborators,
+                        collaboratorsAvailable.find(item => item.email === collaborator)])
+                    setCollaboratorsAvailable(collaboratorsAvailable.filter(item => item.email !== collaborator))
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        } catch (error){
+            console.log(error)
+        }
+    }
+
     // Checkboxes filters
     const clearFilters = () => {
         setSelectedDepartments([])
@@ -125,6 +202,11 @@ const ProjectCollaborators = ({projectName, responsible}) => {
         />
     ))
 
+    // Selector options
+    const collaboratorOptions = collaboratorsAvailable.map((collaborator, index) => (
+        <option key={`collaborator_${index}`} label={collaborator.email} value={collaborator.email}></option>
+    ))
+
     return(
         <Container fluid className={"bg-secondary color-secondary custom-min-vh-100"}>
             <ToastComponent
@@ -133,6 +215,28 @@ const ProjectCollaborators = ({projectName, responsible}) => {
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
             />
+            <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add collaborator</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form noValidate onSubmit={handleSubmit}>
+                        <Row>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Collaborator</Form.Label>
+                                    <Form.Select value={collaborator} onChange={(e) => setCollaborator(e.target.value)}>
+                                        {collaboratorOptions}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <div className={"text-end"}>
+                            <button type="submit" className={"btn btn-primary mt-5"}>Add collaborator</button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} className={"m-header custom-scrollbar"}>
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Filters</Offcanvas.Title>
