@@ -10,12 +10,13 @@ import DatePicker from 'react-datepicker';
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Card from "react-bootstrap/Card";
+import Modal from "react-bootstrap/Modal";
 // Fontawesome imports
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Meeting from "../../models/Meeting.jsx";
 import {filterByDateRange, filterTitleBySearchTerm} from "../../controllers/Filters.jsx";
@@ -35,11 +36,18 @@ const ProjectMeetings = ({projectName, responsible}) => {
     const [resultsAmount, setResultsAmount] = useState(0)
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const [meetings, setMeetings] = useState([])
+    const platforms = ["Zoom", "Meets", "Teams", "Discord"]
+    const today = new Date()
     // Filters
     const [searchTerm, setSearchTerm] = useState("")
-    const [startDate, setStartDate] = useState(new Date())
-    const [endDate, setEndDate] = useState(new Date())
+    const [startDate, setStartDate] = useState(today)
+    const [endDate, setEndDate] = useState(today)
     const [filteredMeetings, setFilteredMeetings] = useState([])
+    // Form data
+    const [title, setTitle] = useState("")
+    const [platform, setPlatform] = useState(platforms[0])
+    const [description, setDescription] = useState("")
+    const [date, setDate] = useState(today)
     // Components
     const [showAddModal, setShowAddModal] = useState(false)
     const [showToast, setShowToast] = useState(false)
@@ -101,6 +109,50 @@ const ProjectMeetings = ({projectName, responsible}) => {
         setFilteredMeetings(filteredMeetings)
     }, [meetings, startDate, endDate, searchTerm])
 
+    // Add meeting
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const form = e.currentTarget
+        if (form.checkValidity() === false)
+            return
+        let payload = {
+            temaReunion: title,
+            descripcion: description,
+            fecha: date,
+            medioReunion: platform,
+        }
+        console.log(payload)
+        try{
+            let response = await postRequest(payload, `reuniones/${projectName}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg("danger")
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else{
+                    setToastBg("info")
+                    const newMeeting = new Meeting(
+                        title,
+                        description,
+                        date,
+                        platform,
+                    )
+                    setMeetings(prevMeetings => [...prevMeetings, newMeeting])
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
     // Meeting cards
     const meetingCards = filteredMeetings.map((meeting, index) => (
         <Col key={`meeting_card_${index}`} >
@@ -132,6 +184,11 @@ const ProjectMeetings = ({projectName, responsible}) => {
         </Col>
     ))
 
+    // Platform selector
+    const platformOptions = platforms.map((platform, index) => (
+        <option key={`platform_${index}`} value={platform}>{platform}</option>
+    ))
+
     return(
         <Container fluid className={"bg-secondary color-secondary custom-min-vh-100"}>
             <ToastComponent
@@ -140,6 +197,71 @@ const ProjectMeetings = ({projectName, responsible}) => {
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
             />
+            <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Meeting</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form noValidate onSubmit={handleSubmit}>
+                        <Row md={2} xs={1}>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Title</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter the title of the meeting..."
+                                        maxLength={50}
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        required
+                                        isInvalid={title.length === 0}
+                                    />
+                                    <Form.Control.Feedback type='invalid'>
+                                        Please enter a valid title.
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col>
+                                <Form.Group className={"mb-3"}>
+                                    <Form.Label>Platform</Form.Label>
+                                    <Form.Select value={platform} onChange={(e) => setPlatform(e.target.value)}>
+                                        {platformOptions}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Description</Form.Label>
+                                    <textarea
+                                        className="form-control"
+                                        rows={2}
+                                        placeholder="Enter the description of the task..."
+                                        value={description}
+                                        onChange={(e) => {setDescription(e.target.value)}}
+                                        maxLength={100}
+                                        required
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row md={2} xs={1}>
+                            <Col>
+                                <DatePicker
+                                    selected={date}
+                                    onChange={date => setDate(date)}
+                                    minDate={today}
+                                    className="form-control mb-3"
+                                />
+                            </Col>
+                        </Row>
+                        <div className={"text-end"}>
+                            <button type="submit" className={"btn btn-primary mt-5"}>Add meeting</button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
             <Row className={"pt-3 px-3"}>
                 <Col className={"text-start flex-grow-1"}>
                     <h2 className={"h2"}>Meetings</h2>
