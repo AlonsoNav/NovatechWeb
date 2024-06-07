@@ -4,6 +4,13 @@ import ModalComponent from "../../../components/ModalComponent.jsx"
 import {deleteRequest, getRequest, putRequest} from "../../../controllers/Database.jsx";
 import ToastComponent from "../../../components/ToastComponent.jsx";
 import Collaborator from "../../../models/Collaborator.jsx";
+import {validateEmail, validatePhone} from "../../../controllers/InputValidation.jsx";
+import CollaboratorsTable from "../../../components/CollaboratorsTable.jsx";
+import {
+    filterCollaboratorsByDepartment,
+    filterCollaboratorsByProjects,
+    filterCollaboratorsBySearchTerm
+} from "../../../controllers/Filters.jsx";
 // React imports
 import {useEffect, useState} from "react";
 import { Link } from 'react-router-dom'
@@ -19,8 +26,6 @@ import InputGroup from "react-bootstrap/InputGroup"
 import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
 import Modal from "react-bootstrap/Modal";
-import {validateEmail, validatePhone} from "../../../controllers/InputValidation.jsx";
-import CollaboratorsTable from "../../../components/CollaboratorsTable.jsx";
 
 const Collaborators = () => {
     //
@@ -219,39 +224,14 @@ const Collaborators = () => {
     // Set filters
     useEffect(() => {
         const filteredCollaborators = collaborators.filter(collaborator => {
-            return filterCollaboratorsByProjects(collaborator)
-                && filterCollaboratorsByDepartment(collaborator)
-                && filterCollaboratorsBySearchTerm(collaborator)
+            return filterCollaboratorsByProjects(collaborator, selectedProjects)
+                && filterCollaboratorsByDepartment(collaborator, selectedDepartments)
+                && filterCollaboratorsBySearchTerm(collaborator, searchTerm)
         })
 
         setFilteredCollaborators(filteredCollaborators)
     }, [collaborators, selectedProjects, selectedDepartments, searchTerm])
 
-    const filterCollaboratorsByProjects = (collaborator) => {
-        if (selectedProjects.length === 0)
-            return true
-        else
-            return selectedProjects.includes(collaborator.project != null ? collaborator.project : "Free")
-    }
-
-    const filterCollaboratorsByDepartment = (collaborator) => {
-        if (selectedDepartments.length === 0)
-            return true
-        else
-            return selectedDepartments.includes(collaborator.department)
-    }
-
-    const filterCollaboratorsBySearchTerm = (collaborator) => {
-        if (searchTerm === "")
-            return true
-        else {
-            const searchTermLowerCase = searchTerm.toLowerCase()
-            const collaboratorNameLowerCase = collaborator.name.toLowerCase()
-            const collaboratorEmailLowerCase = collaborator.email.split('@')[0].toLowerCase() // Only the email name is compared
-
-            return collaboratorNameLowerCase.includes(searchTermLowerCase) || collaboratorEmailLowerCase.includes(searchTermLowerCase)
-        }
-    }
 
     // Checkboxes filters
     const clearFilters = () => {

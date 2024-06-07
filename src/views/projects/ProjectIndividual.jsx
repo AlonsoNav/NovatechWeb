@@ -92,7 +92,7 @@ const ProjectIndividual = () => {
                         className={"px-2"}
                     >
                         <Tab eventKey="collaborators" title="Collaborators">
-                            <ProjectCollaborators />
+                            <ProjectCollaborators  projectName={projectName} responsible={project.responsible || ""}/>
                         </Tab>
                         <Tab eventKey="information" title="Information">
                             <ProjectInformation project={project}/>

@@ -3,18 +3,22 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
+import CollaboratorsTable from "../../components/CollaboratorsTable.jsx";
+import {getRequest} from "../../controllers/Database.jsx";
+import ToastComponent from "../../components/ToastComponent.jsx";
+import Collaborator from "../../models/Collaborator.jsx";
+import {filterCollaboratorsByDepartment, filterCollaboratorsBySearchTerm} from "../../controllers/Filters.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
+import InputGroup from "react-bootstrap/InputGroup";
+import Offcanvas from "react-bootstrap/Offcanvas";
+import Form from "react-bootstrap/Form";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
-import Offcanvas from "react-bootstrap/Offcanvas";
-import CollaboratorsTable from "../../components/CollaboratorsTable.jsx";
 
 const ProjectCollaborators = ({projectName, responsible}) => {
     ProjectCollaborators.propTypes = {
@@ -27,6 +31,7 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const { isAdmin } = useAuth();
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const departments = ["Accountability", "Administration", "HR", "IT"]
+    const [collaborators, setCollaborators] = useState([])
     // Filters
     const [showOffcanvas, setShowOffcanvas] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -34,12 +39,65 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const [filteredCollaborators, setFilteredCollaborators] = useState([])
     // Components
     const [showAddModal, setShowAddModal] = useState(false)
+    const [showToast, setShowToast] = useState(false)
+    const [toastMessage, setToastMessage] = useState("")
+    const [toastBg, setToastBg] = useState("danger")
 
     // Fetch data
+    useEffect(() => {
+        const fetchCollaborators = async () => {
+            try {
+                const response = await getRequest(`proyectos/${projectName}/colab`)
+
+                if (!response){
+                    setToastMessage("Could not connect to the server.")
+                    setShowToast(true)
+                }
+                else {
+                    const body = await response.json()
+                    if (!response.ok) {
+                        setToastMessage(body.message)
+                        setShowToast(true)
+                    } else{
+                        const collaboratorsMap = body.map(collaborator => {
+                            return new Collaborator(
+                                collaborator.cedula,
+                                collaborator.nombre,
+                                collaborator.correo,
+                                collaborator.telefono,
+                                collaborator.departamento
+                            )
+                        })
+                        setCollaborators(collaboratorsMap)
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        fetchCollaborators()
+    }, [projectName])
+
     useEffect(() => {
         if (isAdmin || responsible === user.correo)
             setIsAdminOrResponsible(true)
     }, [responsible]);
+
+    // Set results amount
+    useEffect(() => {
+        setResultsAmount(filteredCollaborators.length)
+    }, [filteredCollaborators])
+
+    // Set filters
+    useEffect(() => {
+        const filteredCollaborators = collaborators.filter(collaborator => {
+            return filterCollaboratorsByDepartment(collaborator, selectedDepartments)
+                && filterCollaboratorsBySearchTerm(collaborator, searchTerm)
+        })
+
+        setFilteredCollaborators(filteredCollaborators)
+    }, [collaborators, selectedDepartments, searchTerm])
 
     // Delete collaborator
     const handleDelete = () => {
@@ -69,6 +127,12 @@ const ProjectCollaborators = ({projectName, responsible}) => {
 
     return(
         <Container fluid className={"bg-secondary color-secondary custom-min-vh-100"}>
+            <ToastComponent
+                message={toastMessage}
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                bg={toastBg}
+            />
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} className={"m-header custom-scrollbar"}>
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Filters</Offcanvas.Title>
