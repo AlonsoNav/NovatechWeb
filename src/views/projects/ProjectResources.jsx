@@ -5,24 +5,24 @@ import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
+import Card from "react-bootstrap/Card";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import Offcanvas from "react-bootstrap/Offcanvas";
+import Modal from "react-bootstrap/Modal";
 // Fontawesome imports
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
-import {getRequest, postRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest, postRequest} from "../../controllers/Database.jsx";
 import Resource from "../../models/Resource.jsx";
 import {filterByCheckbox, filterBySearchTerm} from "../../controllers/Filters.jsx";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import Card from "react-bootstrap/Card";
-import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
-import Offcanvas from "react-bootstrap/Offcanvas";
-import Modal from "react-bootstrap/Modal";
-import Task from "../../models/Task.jsx";
+import ModalComponent from "../../components/ModalComponent.jsx";
 
 const ProjectResources = ({projectName, responsible}) => {
     ProjectResources.propTypes = {
@@ -35,6 +35,7 @@ const ProjectResources = ({projectName, responsible}) => {
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const [resultsAmount, setResultsAmount] = useState(0)
     const [resources, setResources] = useState([])
+    const [selectedResource, setSelectedResource] = useState([])
     // Filters
     const types = ["Human", "Material", "Financial", "Time"]
     const [searchTerm, setSearchTerm] = useState("")
@@ -50,6 +51,7 @@ const ProjectResources = ({projectName, responsible}) => {
     const [toastMessage, setToastMessage] = useState("")
     const [toastBg, setToastBg] = useState("danger")
     const [showOffcanvas, setShowOffcanvas] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     // Fetch data
     useEffect(() => {
@@ -69,6 +71,7 @@ const ProjectResources = ({projectName, responsible}) => {
                     } else{
                         const resourcesMap = body.map(resource => {
                             return new Resource(
+                                resource._id,
                                 resource.nombre,
                                 resource.descripcion,
                                 resource.tipo
@@ -128,11 +131,44 @@ const ProjectResources = ({projectName, responsible}) => {
                 else{
                     setToastBg("info")
                     const newResource = new Resource(
+                        body._id,
                         name,
                         description,
                         type
                     )
                     setResources(prevResources => [...prevResources, newResource])
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
+    // Delete resource
+    const handleDelete = (resource) => {
+        setSelectedResource(resource)
+        setShowDeleteModal(true)
+    }
+
+    const handleDeleteConfirmed = async () => {
+        setShowDeleteModal(false)
+        try{
+            let response = await deleteRequest(`proyectos/${projectName}/recursos/${selectedResource.id}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setResources(resources.filter(resource => resource.id !== selectedResource.id))
+                    setToastBg('info')
                 }
                 setToastMessage(body.message)
                 setShowToast(true)
@@ -159,7 +195,7 @@ const ProjectResources = ({projectName, responsible}) => {
                         </Col>
                         {isAdminOrResponsible &&
                             <Col className={"col-auto"}>
-                                <button className="btn btn-sm btn-danger">
+                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(resource)}>
                                     <FontAwesomeIcon icon={faTrash}/>
                                 </button>
                             </Col>
@@ -203,6 +239,15 @@ const ProjectResources = ({projectName, responsible}) => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
+            />
+            <ModalComponent
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={() => handleDeleteConfirmed()}
+                show={showDeleteModal}
+                title={"Confirm Resource Delete"}
+                message={`Are you sure you want to delete the resource ${selectedResource.name}?`}
+                confirmButtonText={"Delete"}
+                confirmButtonVariant={"danger"}
             />
             <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
                 <Modal.Header closeButton>
