@@ -8,16 +8,24 @@ import Table from "react-bootstrap/Table"
 // React imports
 import PropTypes from "prop-types";
 import {useEffect, useState} from "react";
+// Local imports
+import {useAuth} from "../contexts/AuthContext.jsx";
 
-const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProjectColumn = true, showEditButton = true }) => {
+const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProjectColumn = true,
+                                showEditButton = true , isResponsible = false, responsible = ""}) => {
     CollaboratorsTable.propTypes = {
         collaborators: PropTypes.array.isRequired,
         handleEdit: PropTypes.func,
         handleDelete: PropTypes.func.isRequired,
         showProjectColumn: PropTypes.bool,
-        showEditButton: PropTypes.bool
+        showEditButton: PropTypes.bool,
+        isResponsible: PropTypes.bool,
+        responsible: PropTypes.string
     }
 
+    // Data
+    const { isAdmin } = useAuth();
+    const isAdminOrResponsible = isAdmin || isResponsible;
     // Sort
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
     const [sortedCollaborators, setSortedCollaborators] = useState([]);
@@ -55,18 +63,26 @@ const CollaboratorsTable = ({ collaborators, handleEdit, handleDelete, showProje
             <td>{collaborator.phone}</td>
             {showProjectColumn && <td>{collaborator.project != null ? collaborator.project : "Free"}</td>}
             <td>{collaborator.department}</td>
-            <td>
-                {showEditButton &&
-                    <button className="btn btn-sm btn-primary me-2"
-                            onClick={() => handleEdit(collaborator)}>
-                        <FontAwesomeIcon icon={faEdit}/>
-                    </button>
-                }
-                <button className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(collaborator)}>
-                    <FontAwesomeIcon icon={faTrash}/>
-                </button>
-            </td>
+            {isAdminOrResponsible ?
+                <td>
+                    {showEditButton &&
+                        <button className="btn btn-sm btn-primary me-2"
+                                onClick={() => handleEdit(collaborator)}>
+                            <FontAwesomeIcon icon={faEdit}/>
+                        </button>
+                    }
+                    {(isAdmin || (isResponsible && responsible !== collaborator.email)) &&
+                        <button className="btn btn-sm btn-danger"
+                                onClick={() => handleDelete(collaborator)}>
+                            <FontAwesomeIcon icon={faTrash}/>
+                        </button>
+                    }
+                </td>
+                :
+                <td>
+
+                </td>
+            }
         </tr>
     ))
 

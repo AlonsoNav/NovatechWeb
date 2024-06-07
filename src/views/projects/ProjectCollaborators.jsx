@@ -4,7 +4,7 @@ import {faAdd, faFilter, faSearch, faTrash} from "@fortawesome/free-solid-svg-ic
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
 import CollaboratorsTable from "../../components/CollaboratorsTable.jsx";
-import {getRequest, postRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Collaborator from "../../models/Collaborator.jsx";
 import {filterCollaboratorsByDepartment, filterCollaboratorsBySearchTerm} from "../../controllers/Filters.jsx";
@@ -20,6 +20,7 @@ import Modal from "react-bootstrap/Modal";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
+import ModalComponent from "../../components/ModalComponent.jsx";
 
 const ProjectCollaborators = ({projectName, responsible}) => {
     ProjectCollaborators.propTypes = {
@@ -30,10 +31,12 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const user = JSON.parse(localStorage.getItem('user'))
     const [resultsAmount, setResultsAmount] = useState(0)
     const { isAdmin } = useAuth();
+    const [isResponsible, setIsResponsible] = useState(false)
     const [isAdminOrResponsible, setIsAdminOrResponsible] = useState(isAdmin)
     const departments = ["Accountability", "Administration", "HR", "IT"]
     const [collaborators, setCollaborators] = useState([])
     const [collaboratorsAvailable, setCollaboratorsAvailable] = useState([])
+    const [selectedCollaborator, setSelectedCollaborator] = useState({})
     // Form data
     const [collaborator, setCollaborator] = useState("")
     // Filters
@@ -43,6 +46,7 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     const [filteredCollaborators, setFilteredCollaborators] = useState([])
     // Components
     const [showAddModal, setShowAddModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
     const [toastBg, setToastBg] = useState("danger")
@@ -124,8 +128,10 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     }, [projectName])
 
     useEffect(() => {
-        if (isAdmin || responsible === user.correo)
+        if (isAdmin || responsible === user.correo){
+            setIsResponsible(true)
             setIsAdminOrResponsible(true)
+        }
     }, [responsible]);
 
     // Set results amount
@@ -144,8 +150,37 @@ const ProjectCollaborators = ({projectName, responsible}) => {
     }, [collaborators, selectedDepartments, searchTerm])
 
     // Delete collaborator
-    const handleDelete = () => {
+    const handleDelete = (collaborator) => {
+        setSelectedCollaborator(collaborator)
+        console.log(collaborator)
+        setShowDeleteModal(true)
+    }
 
+    const handleDeleteConfirmed = async () => {
+        setShowDeleteModal(false)
+        try{
+            let response = await deleteRequest( `proyectos/${projectName}/colab/${selectedCollaborator.email}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg("danger")
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok)
+                    setToastBg("danger")
+                else{
+                    setToastBg("info")
+                    setCollaboratorsAvailable(prevCollaborators => [...prevCollaborators, selectedCollaborator])
+                    setCollaborators(collaborators.filter(item => item.email !== selectedCollaborator.email))
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     // Add collaborator
@@ -214,6 +249,15 @@ const ProjectCollaborators = ({projectName, responsible}) => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
+            />
+            <ModalComponent
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={() => handleDeleteConfirmed()}
+                show={showDeleteModal}
+                title={"Confirm Collaborator Delete"}
+                message={`Are you sure you want to delete the collaborator ${selectedCollaborator.email} from the project?`}
+                confirmButtonText={"Delete"}
+                confirmButtonVariant={"danger"}
             />
             <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
                 <Modal.Header closeButton>
@@ -294,7 +338,13 @@ const ProjectCollaborators = ({projectName, responsible}) => {
             </Row>
             <Row className={"pt-3 px-3"}>
                 <Col className={"table-responsive text-start"}>
-                    <CollaboratorsTable  collaborators={filteredCollaborators} handleDelete={handleDelete} showProjectColumn={false} showEditButton={false}/>
+                    <CollaboratorsTable
+                        collaborators={filteredCollaborators}
+                        handleDelete={handleDelete}
+                        showProjectColumn={false}
+                        showEditButton={false}
+                        isResponsible={isResponsible}
+                        responsible={responsible || ""}/>
                 </Col>
             </Row>
         </Container>
