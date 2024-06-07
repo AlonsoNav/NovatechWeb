@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
     const login = (user) => {
         localStorage.setItem("user", JSON.stringify(user));
         setIsLogin(true);
-        setIsAdmin(user.name==="Admin");
+        setIsAdmin(user.admin);
     }
 
     const logout = () => {

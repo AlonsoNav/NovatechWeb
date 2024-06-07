@@ -1,0 +1,19 @@
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    color: black;
+    border-bottom: 2px solid #2292D4;
+    background-color: transparent;
+    border-radius: 0;
+    border-top: transparent;
+    border-left: transparent;
+    border-right: transparent;
+}
+
+.nav-tabs .nav-link {
+    color: grey;
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link:not(.active):hover {
+    color: #2292D4;
+    border-color: transparent;
+}
