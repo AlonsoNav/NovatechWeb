@@ -9,6 +9,7 @@ import Login from "./views/Login";
 import Profile from "./views/Profile.jsx";
 import Projects from "./views/Projects.jsx"
 import Forum from "./views/Forum/Forum.jsx";
+import Statistics from "./views/Statistics.jsx"
 
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/profile" element={<ProtectedRoute>{renderWithHeader(Profile)}</ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
                 <Route path="/forum" element={<ProtectedRoute>{renderWithHeader(Forum)}</ProtectedRoute>} />
+                <Route path="/statistics" element={<ProtectedRoute>{renderWithHeader(Statistics)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>
