@@ -16,13 +16,14 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faAdd, faSearch, faTrash} from "@fortawesome/free-solid-svg-icons";
 // Local imports
 import {useAuth} from "../../contexts/AuthContext.jsx";
-import {getRequest, postRequest} from "../../controllers/Database.jsx";
+import {deleteRequest, getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Meeting from "../../models/Meeting.jsx";
 import {filterByDateRange, filterTitleBySearchTerm} from "../../controllers/Filters.jsx";
 // React imports
 import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
+import ModalComponent from "../../components/ModalComponent.jsx";
 
 const ProjectMeetings = ({projectName, responsible}) => {
     ProjectMeetings.propTypes = {
@@ -38,6 +39,7 @@ const ProjectMeetings = ({projectName, responsible}) => {
     const [meetings, setMeetings] = useState([])
     const platforms = ["Zoom", "Meets", "Teams", "Discord"]
     const today = new Date()
+    const [selectedMeeting, setSelectedMeeting] = useState({})
     // Filters
     const [searchTerm, setSearchTerm] = useState("")
     const [startDate, setStartDate] = useState(today)
@@ -50,6 +52,7 @@ const ProjectMeetings = ({projectName, responsible}) => {
     const [date, setDate] = useState(today)
     // Components
     const [showAddModal, setShowAddModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
     const [toastBg, setToastBg] = useState("danger")
@@ -72,6 +75,7 @@ const ProjectMeetings = ({projectName, responsible}) => {
                     } else{
                         const meetingsMap = body.map(meeting => {
                             return new Meeting(
+                                meeting._id,
                                 meeting.temaReunion,
                                 meeting.descripcion,
                                 new Date(meeting.fecha),
@@ -122,7 +126,6 @@ const ProjectMeetings = ({projectName, responsible}) => {
             fecha: date,
             medioReunion: platform,
         }
-        console.log(payload)
         try{
             let response = await postRequest(payload, `reuniones/${projectName}`)
 
@@ -138,12 +141,45 @@ const ProjectMeetings = ({projectName, responsible}) => {
                 else{
                     setToastBg("info")
                     const newMeeting = new Meeting(
+                        body._id,
                         title,
                         description,
                         date,
                         platform,
                     )
                     setMeetings(prevMeetings => [...prevMeetings, newMeeting])
+                }
+                setToastMessage(body.message)
+                setShowToast(true)
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
+    // Delete meeting
+    const handleDelete = (meeting) => {
+        setSelectedMeeting(meeting)
+        setShowDeleteModal(true)
+    }
+
+    const handleDeleteConfirmed = async () => {
+        setShowDeleteModal(false)
+        try{
+            let response = await deleteRequest(`reuniones/${projectName}/${selectedMeeting.id}`)
+
+            if (!response){
+                setToastMessage("Could not connect to the server.")
+                setToastBg('danger')
+                setShowToast(true)
+            }
+            else{
+                const body = await response.json()
+                if (!response.ok) {
+                    setToastBg('danger')
+                }else{
+                    setMeetings(meetings.filter(meeting => meeting.id !== selectedMeeting.id))
+                    setToastBg('info')
                 }
                 setToastMessage(body.message)
                 setShowToast(true)
@@ -165,7 +201,7 @@ const ProjectMeetings = ({projectName, responsible}) => {
                         </Col>
                         {isAdminOrResponsible &&
                             <Col className={"col-auto"}>
-                                <button className="btn btn-sm btn-danger">
+                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(meeting)}>
                                     <FontAwesomeIcon icon={faTrash}/>
                                 </button>
                             </Col>
@@ -196,6 +232,15 @@ const ProjectMeetings = ({projectName, responsible}) => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
                 bg={toastBg}
+            />
+            <ModalComponent
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={() => handleDeleteConfirmed()}
+                show={showDeleteModal}
+                title={"Confirm Meeting Delete"}
+                message={`Are you sure you want to delete the meeting ${selectedMeeting.title}?`}
+                confirmButtonText={"Delete"}
+                confirmButtonVariant={"danger"}
             />
             <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
                 <Modal.Header closeButton>

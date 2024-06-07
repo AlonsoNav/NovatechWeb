@@ -1,5 +1,6 @@
 class Meeting {
-    constructor(title, description, date, platform) {
+    constructor(id, title, description, date, platform) {
+        this.id = id
         this.title = title
         this.description = description
         this.date = date
