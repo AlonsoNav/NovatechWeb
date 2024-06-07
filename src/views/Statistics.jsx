@@ -7,8 +7,7 @@ import BarChart from '../components/BarChart.jsx';
 import { getRequest } from '../controllers/Database.jsx';
 
 // Reports
-import { Download } from '../controllers/ReportsController.jsx'
-// Reports
+import { getTaskByState, getWeeks, getIdealProgressRate, getActualProgress, DownloadReport } from '../controllers/ReportsController.jsx'
 
 const Statistics = () => {
   const [projects, setProjects] = useState([]);
@@ -48,75 +47,7 @@ const Statistics = () => {
     fetchProjects();
   }, []);
 
-  const getWeeks = (selectedProjectData) => {
-    let fechaFinal = selectedProjectData.fechaFin;
-    if (fechaFinal == null) {
-      fechaFinal = new Date();
-    } else {
-      fechaFinal = new Date(selectedProjectData.fechaFin);
-    }
-    let fechaInicio = new Date(selectedProjectData.fechaInicio);
-    const diffMiliS = Math.abs(fechaFinal - fechaInicio);
-    const totalWeeks = Math.ceil(diffMiliS / (1000 * 60 * 60 * 24 * 7)) + 1;
-    setTotalWeeks(totalWeeks);
-    return totalWeeks - 1;
-  };
-
-  const getIdealProgressRate = (selectedProjectData, totalWeeks) => {
-    const { tareas } = selectedProjectData;
-    let totalStoryPoints = 0;
-
-    tareas.forEach(tarea => {
-      totalStoryPoints += tarea.storyPoints;
-    });
-
-    const idealProgressRate = totalStoryPoints / totalWeeks;
-    setTotalStoryPoints(totalStoryPoints);
-    setIdealProgressRate(idealProgressRate);
-    return totalStoryPoints;
-  };
-
-  const getActualProgress = (selectedProjectData, totalWeeks, totalStoryPoints) => {
-    const { tareas } = selectedProjectData;
-    let actualProgress = [totalStoryPoints];
-
-    for (var i = 1; i <= totalWeeks; i++) {
-      tareas.forEach(tarea => {
-        if (tarea.estado === 'Done') {
-          let fechaInicio = new Date(selectedProjectData.fechaInicio);
-          let fechaFinal = new Date(tarea.fechaFinal);
-          const diffMiliS = Math.abs(fechaFinal - fechaInicio);
-          const weeks = Math.ceil(diffMiliS / (1000 * 60 * 60 * 24 * 7));
-          if (weeks === i) actualProgress.push(totalStoryPoints - tarea.storyPoints);
-        }
-      });
-    }
-
-    setActualProgress(actualProgress);
-  };
-
-  const handleBarChart = (selectedProjectData) => {
-    const { tareas } = selectedProjectData;
-    let countPending = 0;
-    let countProgress = 0;
-    let countFinished = 0;
-    tareas.forEach(tarea => {
-      if (tarea.estado === 'Todo') countPending++;
-      else if (tarea.estado === 'Doing') countProgress++;
-      else if (tarea.estado === 'Done') countFinished++;
-    });
-    setCountPending(countPending);
-    setCountProgress(countProgress);
-    setCountFinished(countFinished);
-  };
-
-  const handleBurndownChart = (selectedProjectData) => {
-    const weeks = getWeeks(selectedProjectData);
-    const totalStoryPoints = getIdealProgressRate(selectedProjectData, weeks);
-    getActualProgress(selectedProjectData, weeks, totalStoryPoints);
-  };
-
-  const handleProjectChange = (e) => {
+  const handleProjectChange = async (e) => {
     const projectName = e.target.value;
     setSelectedProject(projectName);
     if (projectName === '') {
@@ -127,10 +58,23 @@ const Statistics = () => {
     }
     const selectedProjectData = projects.find(project => project.nombre === projectName);
     if (selectedProjectData) {
-      // Burndown Chart
-      handleBurndownChart(selectedProjectData);
       // Bar Chart
-      handleBarChart(selectedProjectData);
+      const tasks = getTaskByState(selectedProjectData);
+      setCountPending(tasks[0]);
+      setCountProgress(tasks[1]);
+      setCountFinished(tasks[2]);
+
+      // Burndown Chart
+      const weeksData = getWeeks(selectedProjectData);
+      const idealProgress = getIdealProgressRate(selectedProjectData, weeksData - 1);
+      const idealProgressRateData = idealProgress[0];
+      const totalStoryPointsData = idealProgress[1];
+      const actualProgressData = getActualProgress(selectedProjectData, weeksData - 1, totalStoryPointsData);
+
+      setTotalWeeks(weeksData);
+      setIdealProgressRate(idealProgressRateData);
+      setTotalStoryPoints(totalStoryPointsData);
+      setActualProgress(actualProgressData);
     }
   };
 
@@ -146,20 +90,9 @@ const Statistics = () => {
   };
 
   const handleDownload = () => {
-    // const { tareas } = selectedProject;
     const nombreProyecto = selectedProject; // asumiendo que existe un selectedProject handler
-    // let countPending = 0;
-    // let countProgress = 0;
-    // let countFinished = 0;
-    // tareas.forEach(tarea => {
-    //   if (tarea.estado === 'Todo') countPending++;
-    //   else if (tarea.estado === 'Doing') countProgress++;
-    //   else if (tarea.estado === 'Done') countFinished++;
-    // });
-    // setCountPending(countPending);
-    // setCountProgress(countProgress);
-    // setCountFinished(countFinished);
-    Download(selectedFormat, nombreProyecto, selectedLanguage, countPending, countProgress, countFinished);
+    const info = [nombreProyecto, countPending, countProgress, countFinished];
+    DownloadReport('projects', selectedFormat, selectedLanguage, info);
   };
 
   const handleSend = (e) => {
