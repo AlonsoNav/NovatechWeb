@@ -6,8 +6,22 @@
     background-color: #EEEAF4 !important;
 }
 
+.bg-tertiary{
+    background-color: #174966 !important;
+}
+
+.bg-info{
+    background-color: #2292D4 !important;
+}
+
 .btn-primary{
     background-color: #2292D4 !important;
+}
+
+.btn-primary.unchecked {
+    background-color: transparent !important;
+    color: #103246 !important;
+    border-color: #103246 !important;
 }
 
 .color-primary{
@@ -16,6 +30,14 @@
 
 .color-secondary{
     color: #103246;
+}
+
+.color-tertiary{
+    color: #FFFFFF;
+}
+
+.color-quaternary{
+    color: #000000;
 }
 
 .color-quinary{
@@ -28,4 +50,13 @@
 
 .m-header{
     margin-top: 66px;
+}
+
+.custom-scrollbar{
+    scrollbar-width: thin;
+    scrollbar-color: #2292D4 #FFFFFF;
+}
+
+.custom-min-vh-100{
+    min-height: calc(100vh - 13.75rem);
 }
