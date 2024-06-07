@@ -30,3 +30,23 @@ export const filterCollaboratorsBySearchTerm = (collaborator, searchTerm) => {
         return collaboratorNameLowerCase.includes(searchTermLowerCase) || collaboratorEmailLowerCase.includes(searchTermLowerCase)
     }
 }
+
+export const filterTitleBySearchTerm = (item, searchTerm) => {
+    if (searchTerm === "")
+        return true
+    else {
+        const searchTermLowerCase = searchTerm.toLowerCase()
+        const titleLowerCase = item.title.toLowerCase()
+
+        return titleLowerCase.includes(searchTermLowerCase)
+    }
+}
+
+export const filterByDateRange = (item, startDate, endDate) => {
+    // Convert dates to milliseconds to compare them easily
+    const date = item.date.getTime();
+    const selectedStartDate = new Date(startDate).getTime();
+    const selectedEndDate = new Date(endDate).getTime();
+
+    return date >= selectedStartDate && date <= selectedEndDate;
+}

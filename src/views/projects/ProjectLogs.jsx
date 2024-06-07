@@ -5,6 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ToastComponent from "../../components/ToastComponent.jsx";
 import {getRequest} from "../../controllers/Database.jsx";
 import Log from "../../models/Log.jsx";
+import {filterByDateRange, filterTitleBySearchTerm} from "../../controllers/Filters.jsx";
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -16,7 +17,6 @@ import Table from "react-bootstrap/Table";
 import {useEffect, useState} from "react";
 import DatePicker from 'react-datepicker';
 import PropTypes from "prop-types";
-
 // Fontawesome imports
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -83,31 +83,11 @@ const ProjectLogs = ({projectName}) => {
     // Set filters
     useEffect(() => {
         const filteredLogs = logs.filter(log => {
-            return filterLogsBySearchTerm(log) && filterLogsByDateRange(log)
+            return filterTitleBySearchTerm(log, searchTerm) && filterByDateRange(log, startDate, endDate)
         })
 
         setFilteredLogs(filteredLogs)
     }, [logs, startDate, endDate, searchTerm])
-
-    const filterLogsBySearchTerm = (log) => {
-        if (searchTerm === "")
-            return true
-        else {
-            const searchTermLowerCase = searchTerm.toLowerCase()
-            const logTitleLowerCase = log.title.toLowerCase()
-
-            return logTitleLowerCase.includes(searchTermLowerCase)
-        }
-    }
-
-    const filterLogsByDateRange = (log) => {
-        // Convert dates to milliseconds to compare them easily
-        const logDate = log.date.getTime();
-        const selectedStartDate = new Date(startDate).getTime();
-        const selectedEndDate = new Date(endDate).getTime();
-
-        return logDate >= selectedStartDate && logDate <= selectedEndDate;
-    }
 
     // Sort table
     const requestSort = (key) => {
