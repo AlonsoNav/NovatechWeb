@@ -200,13 +200,11 @@ const ProjectIndividual = () => {
                     <h1 className={"h1"}>{project.name}</h1>
                     <p>Status: {project.status} - Start date: {project.startDate ? project.startDate.toLocaleDateString() : 'Loading...'}</p>
                 </Col>
-                <Col className={"text-end"}>
-                    {canCreateForum ? 
-                        <Button onClick={handleCreateForum}>Create forum</Button> 
-                    : ""}
-                </Col>
                 <Col>
                     <div className={"text-end"}>
+                        {canCreateForum ? 
+                            <Button className="btn btn-primary my-2 mx-2" onClick={handleCreateForum}>Create forum</Button> 
+                        : ""}
                         <Button onClick={handleModalShow} className="btn btn-primary my-2">Generate report</Button>
                     </div>
                 </Col>
