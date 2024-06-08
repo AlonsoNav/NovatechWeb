@@ -29,24 +29,24 @@ const Header = () => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto text-start">
-                        <Nav.Link className="custom-nav-link" href="/projects">
+                        <Nav.Link className="custom-nav-link" onClick={e => {e.preventDefault(); navigate("/projects")}}>
                             <FontAwesomeIcon icon={faProjectDiagram} className="me-1" />Projects
                         </Nav.Link>
-                        <Nav.Link className="custom-nav-link" href="/forum">
+                        <Nav.Link className="custom-nav-link" onClick={e => {e.preventDefault(); navigate("/forum")}}>
                             <FontAwesomeIcon icon={faComments} className="me-1" />Forum
                         </Nav.Link>
-                        <Nav.Link className="custom-nav-link" href="/statistics">
+                        <Nav.Link className="custom-nav-link" onClick={e => {e.preventDefault(); navigate("/statistics")}}>
                             <FontAwesomeIcon icon={faBarChart} className="me-1" />Statistics
                         </Nav.Link>
                         {isAdmin &&
-                            <Nav.Link className="custom-nav-link" href="/collaborators">
+                            <Nav.Link className="custom-nav-link" onClick={e => {e.preventDefault(); navigate("/collaborators")}}>
                                 <FontAwesomeIcon icon={faUser} className="me-1" />Collaborators
                             </Nav.Link>
                         }
                     </Nav>
                     <Nav className="me-0 text-start">
                         {!isAdmin &&
-                            <Nav.Link className="custom-nav-link" href="/profile">
+                            <Nav.Link className="custom-nav-link" onClick={e => {e.preventDefault(); navigate("/profile")}}>
                                 <FontAwesomeIcon icon={faUser} className="me-1" />User
                             </Nav.Link>
                         }
