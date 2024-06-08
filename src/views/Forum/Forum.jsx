@@ -159,9 +159,9 @@ const Forum = () => {
                 .catch(err => console.log(err))
         } else {
             const options = [
-                { value: "general", tag: "General"},
-                { value: user.proyecto.nombre, tag: user.proyecto.nombre}
+                { value: "general", tag: "General"}
             ]
+            if (user.proyecto.tieneForo) { options.push({ value: user.proyecto.nombre, tag: user.proyecto.nombre}); }
             setForumOptions(options)
         }
     }, [])
