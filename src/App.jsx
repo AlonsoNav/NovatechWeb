@@ -33,7 +33,7 @@ function App() {
     );
 
     return (
-      <AuthProvider>
+    <AuthProvider>
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Login/>} />
@@ -47,7 +47,7 @@ function App() {
                 <Route path="/statistics" element={<ProtectedRoute>{renderWithHeader(Statistics)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
-      </AuthProvider>
+    </AuthProvider>
     )
 }
 
