@@ -86,7 +86,13 @@ const ProjectIndividual = () => {
         console.log(body.message);
         setToastMessage(body.message);
         setShowToast(true);
-        if (response.ok) { setCanCreateForum(false); }
+        if (response.ok) { 
+            setCanCreateForum(false);
+            const user = JSON.parse(localStorage.getItem("user"));
+            user.proyecto.tieneForo = true;
+            localStorage.setItem("user", JSON.stringify(user));
+        }
+
     }
 
 
