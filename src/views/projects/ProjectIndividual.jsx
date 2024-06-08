@@ -6,12 +6,16 @@ import {determineProjectStatus} from "../../controllers/BusinessLogic.jsx";
 import {getRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Project from "../../models/Project.jsx";
+import { getTaskByState, DownloadReport, sendEmail } from '../../controllers/ReportsController.jsx'
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 // React imports
 import { useParams } from 'react-router-dom';
 import {useEffect, useState} from "react";
@@ -28,9 +32,13 @@ const ProjectIndividual = () => {
     const { projectName } = useParams();
     const [project, setProject] = useState({})
     const [key, setKey] = useState('information');
+    const [selectedFormat, setSelectedFormat] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('');
+    const [projectData, setProjectData] = useState({})
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
+    const [showModal, setShowModal] = useState(false);
 
     // Fetch project data
     useEffect(() => {
@@ -48,6 +56,7 @@ const ProjectIndividual = () => {
                         setToastMessage(body.message)
                         setShowToast(true)
                     }else {
+                        setProjectData(body)
                         let projectStartDate = new Date(body.fechaInicio)
                         let projectEndDate = new Date(body.fechaFin)
                         const project = new Project(
@@ -70,6 +79,44 @@ const ProjectIndividual = () => {
         fetchProject()
     }, []);
 
+    const handleFormatChange = (e) => {
+        const format = e.target.value;
+        setSelectedFormat(format);
+    };
+    
+    const handleLanguageChange = (e) => {
+        const language = e.target.value;
+        setSelectedLanguage(language);
+    };
+    
+    const handleDownload = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const nombreProyecto = projectData.nombre;
+            const { tareas } = projectData;
+            const tasksData = getTaskByState(tareas);
+            let status = determineProjectStatus(projectData.fechaInicio, projectData.fechaFin);
+            const info = [nombreProyecto, tasksData[0], tasksData[1], tasksData[2], status];
+            const msg = await DownloadReport('project', selectedFormat, selectedLanguage, info);
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleSend = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const nombreProyecto = projectData.nombre;
+            const { tareas } = projectData;
+            const tasksData = getTaskByState(tareas);
+            let status = determineProjectStatus(projectData.fechaInicio, projectData.fechaFin);
+            const info = [nombreProyecto, tasksData[0], tasksData[1], tasksData[2], status];
+            const msg = await sendEmail("vickysandi2406@gmail.com", info, selectedFormat, selectedLanguage, 'project')
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleModalShow = () => setShowModal(true);
+    const handleModalClose = () => setShowModal(false);
 
     return (
         <Container fluid className={"m-header"}>
@@ -78,10 +125,59 @@ const ProjectIndividual = () => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
             />
+            <Modal show={showModal} onHide={handleModalClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Report</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row className="color-secondary mb-3">
+                    <Col><p>Choose the the format and the language</p></Col>
+                    </Row>
+                    <Row className="color-secondary mb-3">
+                    <Col className="d-flex justify-content-center">
+                        <Form.Group>
+                            <Form.Label>Format</Form.Label>
+                            <Form.Select onChange={handleFormatChange} isInvalid={selectedFormat === ''}>
+                            <option value="">Select a format</option>
+                            <option value="PDF">PDF</option>
+                            <option value="CSV">CSV</option>
+                            <option value="XML">XML</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type='invalid'>
+                            Please enter a format to continue.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    <Col className="d-flex justify-content-center">
+                        <Form.Group>
+                        <Form.Label>Language</Form.Label>
+                        <Form.Select onChange={handleLanguageChange} isInvalid={selectedLanguage === ''}>
+                            <option value="">Select a language</option>
+                            <option value="Spanish">Spanish</option>
+                            <option value="English">English</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type='invalid'>
+                            Please enter a language to continue.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    </Row>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleDownload}>Download</Button>
+                    <Button variant="primary" onClick={handleSend}>Send</Button>
+                    <Button variant="secondary" onClick={handleModalClose}>Cancel</Button>
+                </Modal.Footer>
+            </Modal>
             <Row className={"px-3 pt-3"}>
                 <Col className={"text-start"}>
                     <h1 className={"h1"}>{project.name}</h1>
                     <p>Status: {project.status} - Start date: {project.startDate ? project.startDate.toLocaleDateString() : 'Loading...'}</p>
+                </Col>
+                <Col>
+                    <div className={"text-end"}>
+                        <Button onClick={handleModalShow} className="btn btn-primary my-2">Generate report</Button>
+                    </div>
                 </Col>
             </Row>
             <Row>

@@ -58,20 +58,6 @@ export async function putRequest(payload, endpoint) {
     }
 }
 
-export async function getRequest(endpoint) {
-    const requestOptions = {
-        method: 'GET',
-        mode: "cors",
-        headers: {'Content-Type': 'application/json'}
-    };
-
-    try {
-        return await fetch(`${API_URL}${endpoint}`, requestOptions);
-    } catch (error) {
-        console.log(error);
-    }
-}
-
 export async function getRequestParams(endpoint, params = {}) {
     const requestOptions = {
         method: 'GET',

@@ -33,7 +33,7 @@ function App() {
     );
 
     return (
-      <AuthProvider>
+    <AuthProvider>
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Login/>} />
@@ -47,7 +47,7 @@ function App() {
                 <Route path="/projects/:projectName" element={<ProtectedRoute>{renderWithHeader(ProjectIndividual)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
-      </AuthProvider>
+    </AuthProvider>
     )
 }
 

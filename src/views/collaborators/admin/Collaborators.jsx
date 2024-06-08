@@ -11,6 +11,7 @@ import {
     filterCollaboratorsByProjects,
     filterCollaboratorsBySearchTerm, filterCollaboratorsByStatus
 } from "../../../controllers/Filters.jsx";
+import {DownloadReport,sendEmail} from '../../../controllers/ReportsController.jsx'
 // React imports
 import {useEffect, useState} from "react";
 import { Link } from 'react-router-dom'
@@ -32,6 +33,8 @@ const Collaborators = () => {
     const [resultsAmount, setResultsAmount] = useState(0)
     const [selectedCollaborator, setSelectedCollaborator] = useState({})
     const [collaborators, setCollaborators] = useState([])
+    const [selectedFormat, setSelectedFormat] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('');
     // Filters
     const departments = ["Accountability", "Administration", "HR", "IT"]
     const statuses = ["Active", "Inactive"]
@@ -49,6 +52,7 @@ const Collaborators = () => {
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
+    const [showModal, setShowModal] = useState(false);
     // Edit form
     const [id, setId] = useState('')
     const [name, setName] = useState('')
@@ -297,6 +301,37 @@ const Collaborators = () => {
         <option key={`project_${index}`} label={project} value={project}></option>
     ))
 
+    const handleFormatChange = (e) => {
+        const format = e.target.value;
+        setSelectedFormat(format);
+    };
+    
+    const handleLanguageChange = (e) => {
+        const language = e.target.value;
+        setSelectedLanguage(language);
+    };
+    
+    const handleDownload = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const info = collaborators;
+            const msg = await DownloadReport('colabs', selectedFormat, selectedLanguage, info);
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleSend = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const info = collaborators;
+            const msg = await sendEmail("vickysandi2406@gmail.com", info, selectedFormat, selectedLanguage, 'colabs');
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleModalShow = () => setShowModal(true);
+    const handleModalClose = () => setShowModal(false);
+
     return (
       <Container fluid className={"m-header p-3"}>
           <ToastComponent
@@ -326,6 +361,50 @@ const Collaborators = () => {
               confirmButtonText={"Save changes"}
               confirmButtonVariant={"primary"}
           />
+          <Modal show={showModal} onHide={handleModalClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Report</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Row className="color-secondary mb-3">
+                <Col><p>Choose the the format and the language</p></Col>
+                </Row>
+                <Row className="color-secondary mb-3">
+                <Col className="d-flex justify-content-center">
+                    <Form.Group>
+                    <Form.Label>Format</Form.Label>
+                    <Form.Select onChange={handleFormatChange} isInvalid={selectedFormat === ''}>
+                        <option value="">Select a format</option>
+                        <option value="PDF">PDF</option>
+                        <option value="CSV">CSV</option>
+                        <option value="XML">XML</option>
+                    </Form.Select>
+                    <Form.Control.Feedback type='invalid'>
+                        Please enter a format to continue.
+                    </Form.Control.Feedback>
+                    </Form.Group>
+                </Col>
+                <Col className="d-flex justify-content-center">
+                    <Form.Group>
+                    <Form.Label>Language</Form.Label>
+                    <Form.Select onChange={handleLanguageChange} isInvalid={selectedLanguage === ''}>
+                        <option value="">Select a language</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="English">English</option>
+                    </Form.Select>
+                    <Form.Control.Feedback type='invalid'>
+                        Please enter a language to continue.
+                    </Form.Control.Feedback>
+                    </Form.Group>
+                </Col>
+                </Row>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleDownload}>Download</Button>
+                <Button variant="primary" onClick={handleSend}>Send</Button>
+                <Button variant="secondary" onClick={handleModalClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
           <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
               <Modal.Header closeButton>
                   <Modal.Title>Edit Collaborator</Modal.Title>
@@ -457,6 +536,11 @@ const Collaborators = () => {
             <Col className={"text-start flex-grow-1"}>
                 <h1 className={"h1"}>Collaborators</h1>
                 <span className={"text-muted"}>{resultsAmount} results</span>
+            </Col>
+            <Col>
+                <div className={"text-end"}>
+                    <Button onClick={handleModalShow} className="btn btn-primary justify-content-center my-1">Generate report</Button>
+                </div>
             </Col>
             <Col className={"text-end col-auto mt-1"}>
                 <Link to={"/collaborators/add"} className={"btn btn-primary justify-content-center"}>

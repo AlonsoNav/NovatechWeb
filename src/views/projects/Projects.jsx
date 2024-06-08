@@ -8,6 +8,7 @@ import {deleteRequest, getRequest} from "../../controllers/Database.jsx";
 import Project from "../../models/Project.jsx";
 import {useAuth} from "../../contexts/AuthContext.jsx";
 import {determineProjectStatus} from "../../controllers/BusinessLogic.jsx";
+import { DownloadReport, sendEmail } from '../../controllers/ReportsController.jsx';
 // Bootstrap imports
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -15,6 +16,7 @@ import Offcanvas from "react-bootstrap/Offcanvas";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
+import Modal from "react-bootstrap/Modal";
 import InputGroup from "react-bootstrap/InputGroup";
 import Card from "react-bootstrap/Card";
 import ProgressBar from "react-bootstrap/ProgressBar";
@@ -34,6 +36,8 @@ const Projects = () => {
     const [selectedProject, setSelectedProject] = useState({})
     const [projects, setProjects] = useState([])
     const { isAdmin } = useAuth();
+    const [selectedFormat, setSelectedFormat] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('');
     // Filters
     const [searchTerm, setSearchTerm] = useState('')
     const [startDate, setStartDate] = useState(today);
@@ -48,6 +52,7 @@ const Projects = () => {
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState('')
     const [toastBg, setToastBg] = useState('danger')
+    const [showModal, setShowModal] = useState(false);
 
     // Fetch data
     useEffect(() => {
@@ -262,6 +267,35 @@ const Projects = () => {
         }
     }
 
+    const handleFormatChange = (e) => {
+        const format = e.target.value;
+        setSelectedFormat(format);
+    };
+    
+    const handleLanguageChange = (e) => {
+        const language = e.target.value;
+        setSelectedLanguage(language);
+    };
+    
+    const handleDownload = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const msg = await DownloadReport('projects', selectedFormat, selectedLanguage, filteredProjects);
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleSend = async () => {
+        if (selectedFormat != '' && selectedLanguage != '') {
+            const msg = await sendEmail("vickysandi2406@gmail.com", filteredProjects, selectedFormat, selectedLanguage, 'projects')
+            setToastMessage(msg)
+            setShowToast(true)
+        }
+    };
+    
+    const handleModalShow = () => setShowModal(true);
+    const handleModalClose = () => setShowModal(false);
+
     return(
         <Container fluid className={"m-header p-3"}>
             <ToastComponent
@@ -279,6 +313,50 @@ const Projects = () => {
                 confirmButtonText={"Delete"}
                 confirmButtonVariant={"danger"}
             />
+            <Modal show={showModal} onHide={handleModalClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Report</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row className="color-secondary mb-3">
+                    <Col><p>Choose the the format and the language</p></Col>
+                    </Row>
+                    <Row className="color-secondary mb-3">
+                    <Col className="d-flex justify-content-center">
+                        <Form.Group>
+                            <Form.Label>Format</Form.Label>
+                            <Form.Select onChange={handleFormatChange} isInvalid={selectedFormat === ''}>
+                            <option value="">Select a format</option>
+                            <option value="PDF">PDF</option>
+                            <option value="CSV">CSV</option>
+                            <option value="XML">XML</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type='invalid'>
+                            Please enter a format to continue.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    <Col className="d-flex justify-content-center">
+                        <Form.Group>
+                        <Form.Label>Language</Form.Label>
+                        <Form.Select onChange={handleLanguageChange} isInvalid={selectedLanguage === ''}>
+                            <option value="">Select a language</option>
+                            <option value="Spanish">Spanish</option>
+                            <option value="English">English</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type='invalid'>
+                            Please enter a language to continue.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    </Row>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleDownload}>Download</Button>
+                    <Button variant="primary" onClick={handleSend}>Send</Button>
+                    <Button variant="secondary" onClick={handleModalClose}>Cancel</Button>
+                </Modal.Footer>
+            </Modal>
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} className={"m-header custom-scrollbar"}>
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Filters</Offcanvas.Title>
@@ -332,6 +410,11 @@ const Projects = () => {
                 <Col className={"text-start flex-grow-1"}>
                     <h1 className={"h1"}>Projects</h1>
                     <span className={"text-muted"}>{resultsAmount} results</span>
+                </Col>
+                <Col>
+                    <div className={"text-end"}>
+                        <Button onClick={handleModalShow} className="btn btn-primary justify-content-center my-1">Generate report</Button>
+                    </div>
                 </Col>
                 {isAdmin &&
                     <Col className={"text-end col-auto mt-1"}>
