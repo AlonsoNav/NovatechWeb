@@ -287,7 +287,8 @@ const Projects = () => {
     
     const handleSend = async () => {
         if (selectedFormat != '' && selectedLanguage != '') {
-            const msg = await sendEmail("vickysandi2406@gmail.com", filteredProjects, selectedFormat, selectedLanguage, 'projects')
+            const user = JSON.parse(localStorage.getItem("user")).correo;
+            const msg = await sendEmail(user, filteredProjects, selectedFormat, selectedLanguage, 'projects')
             setToastMessage(msg)
             setShowToast(true)
         }

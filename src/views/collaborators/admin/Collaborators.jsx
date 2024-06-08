@@ -323,7 +323,8 @@ const Collaborators = () => {
     const handleSend = async () => {
         if (selectedFormat != '' && selectedLanguage != '') {
             const info = collaborators;
-            const msg = await sendEmail("vickysandi2406@gmail.com", info, selectedFormat, selectedLanguage, 'colabs');
+            const user = JSON.parse(localStorage.getItem("user")).correo;
+            const msg = await sendEmail(user, info, selectedFormat, selectedLanguage, 'colabs');
             setToastMessage(msg)
             setShowToast(true)
         }

@@ -112,7 +112,8 @@ const ProjectIndividual = () => {
             const tasksData = getTaskByState(tareas);
             let status = determineProjectStatus(projectData.fechaInicio, projectData.fechaFin);
             const info = [nombreProyecto, tasksData[0], tasksData[1], tasksData[2], status];
-            const msg = await sendEmail("vickysandi2406@gmail.com", info, selectedFormat, selectedLanguage, 'project')
+            const user = JSON.parse(localStorage.getItem("user")).correo;
+            const msg = await sendEmail(user, info, selectedFormat, selectedLanguage, 'project')
             setToastMessage(msg)
             setShowToast(true)
         }
