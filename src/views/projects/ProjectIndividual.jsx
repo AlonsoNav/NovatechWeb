@@ -3,7 +3,7 @@ import '../../styles/Style.css'
 import '../../styles/Tabs.css'
 // Local imports
 import {determineProjectStatus} from "../../controllers/BusinessLogic.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Project from "../../models/Project.jsx";
 // Bootstrap imports
@@ -12,6 +12,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import Button from 'react-bootstrap/Button';
 // React imports
 import { useParams } from 'react-router-dom';
 import {useEffect, useState} from "react";
@@ -28,6 +29,7 @@ const ProjectIndividual = () => {
     const { projectName } = useParams();
     const [project, setProject] = useState({})
     const [key, setKey] = useState('information');
+    const [canCreateForum, setCanCreateForum] = useState(false);
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
@@ -37,6 +39,7 @@ const ProjectIndividual = () => {
         const fetchProject = async () => {
             try {
                 const response = await getRequest(`proyectos/${projectName}`)
+                const user = JSON.parse(localStorage.getItem("user"));
 
                 if (!response){
                     setToastMessage("Could not connect to the server.")
@@ -60,6 +63,7 @@ const ProjectIndividual = () => {
                             body.descripcion
                         )
                         setProject(project)
+                        setCanCreateForum((user.admin || (project.responsible && project.responsible === user.correo)) && !body.tieneForo);
                     }
                 }
             } catch (error) {
@@ -69,6 +73,21 @@ const ProjectIndividual = () => {
 
         fetchProject()
     }, []);
+
+    const handleCreateForum = async e => {
+        e.preventDefault();
+        const response = await postRequest({}, `foros/${project.name}`);
+        if (!response){
+            setToastMessage("Could not connect to the server.");
+            setShowToast(true);
+            return;
+        }
+        const body = await response.json();
+        console.log(body.message);
+        setToastMessage(body.message);
+        setShowToast(true);
+        if (response.ok) { setCanCreateForum(false); }
+    }
 
 
     return (
@@ -82,6 +101,11 @@ const ProjectIndividual = () => {
                 <Col className={"text-start"}>
                     <h1 className={"h1"}>{project.name}</h1>
                     <p>Status: {project.status} - Start date: {project.startDate ? project.startDate.toLocaleDateString() : 'Loading...'}</p>
+                </Col>
+                <Col className={"text-end"}>
+                    {canCreateForum ? 
+                        <Button onClick={handleCreateForum}>Create forum</Button> 
+                    : ""}
                 </Col>
             </Row>
             <Row>

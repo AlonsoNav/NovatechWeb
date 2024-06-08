@@ -161,7 +161,7 @@ const Forum = () => {
             const options = [
                 { value: "general", tag: "General"}
             ]
-            if (user.proyecto.tieneForo) { options.push({ value: user.proyecto.nombre, tag: user.proyecto.nombre}); }
+            if (user.proyecto && user.proyecto.tieneForo) { options.push({ value: user.proyecto.nombre, tag: user.proyecto.nombre}); }
             setForumOptions(options)
         }
     }, [])
