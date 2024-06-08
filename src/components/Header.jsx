@@ -9,7 +9,6 @@ import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faUser, faProjectDiagram, faComments, faSignOut, faBarChart} from '@fortawesome/free-solid-svg-icons'
-import PropTypes from "prop-types"
 
 const Header = () => {
     const { isAdmin, logout } = useAuth();
