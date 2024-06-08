@@ -1,4 +1,4 @@
-.custom-nav-link{
+.custom-nav-link, .custom-nav-link:active, .custom-nav-link:focus, .custom-nav-link:visited {
     color: #68696E;
 }
 
