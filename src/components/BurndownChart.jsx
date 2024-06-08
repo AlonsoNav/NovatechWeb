@@ -13,7 +13,6 @@ const BurndownChart = ({totalWeeks, totalStoryPoints, idealProgressRate, actualP
     let progressRate = [];
     for (var i=totalStoryPoints; i > 0 && idealProgressRate != 0; i-=idealProgressRate) {
         progressRate.push(i)
-        console.log(i, idealProgressRate, progressRate)
     }
     progressRate.push(0)
 
