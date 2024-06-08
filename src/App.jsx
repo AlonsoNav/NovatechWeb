@@ -11,6 +11,8 @@ import Collaborators from "./views/collaborators/admin/Collaborators.jsx";
 import CollaboratorsAdd from "./views/collaborators/admin/CollaboratorsAdd.jsx";
 import ProjectsAdd from "./views/projects/admin/ProjectsAdd.jsx";
 import ProjectIndividual from "./views/projects/ProjectIndividual.jsx";
+import Forum from "./views/Forum/Forum.jsx";
+import Statistics from "./views/Statistics.jsx"
 // Context and AuthProvider
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
@@ -41,6 +43,8 @@ function App() {
                 <Route path="/projects" element={<ProtectedRoute>{renderWithHeader(Projects)}</ProtectedRoute>} />
                 <Route path="/projects/add" element={<ProtectedRoute>{renderWithHeader(ProjectsAdd)}</ProtectedRoute>} />
                 <Route path="/projects/:projectName" element={<ProtectedRoute>{renderWithHeader(ProjectIndividual)}</ProtectedRoute>} />
+                <Route path="/forum" element={<ProtectedRoute>{renderWithHeader(Forum)}</ProtectedRoute>} />
+                <Route path="/statistics" element={<ProtectedRoute>{renderWithHeader(Statistics)}</ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
       </AuthProvider>

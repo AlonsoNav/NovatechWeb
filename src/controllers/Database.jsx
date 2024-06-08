@@ -57,3 +57,35 @@ export async function putRequest(payload, endpoint) {
         console.log(error)
     }
 }
+
+export async function getRequest(endpoint) {
+    const requestOptions = {
+        method: 'GET',
+        mode: "cors",
+        headers: {'Content-Type': 'application/json'}
+    };
+
+    try {
+        return await fetch(`${API_URL}${endpoint}`, requestOptions);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function getRequestParams(endpoint, params = {}) {
+    const requestOptions = {
+        method: 'GET',
+        mode: "cors",
+        headers: {'Content-Type': 'application/json'}
+    };
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${API_URL}${endpoint}${queryString ? `?${queryString}` : ''}`;
+
+    try {
+        const response = await fetch(url, requestOptions);
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+}
