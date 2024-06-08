@@ -7,6 +7,13 @@ import { postRequest } from '../../controllers/Database';
 // Styles
 import styles from "./Forum.module.css";
 
+const formatDate = date => {
+    const localeDate = new Date(date).toLocaleDateString();
+    const localeTime = new Date(date).toLocaleTimeString();
+    const res = localeDate + " " + localeTime;
+    return res;
+}
+
 const Forum = () => {
     // Forum States
     const [forumOptions, setForumOptions] = useState([{ value: "general", label: "General"}]);
@@ -152,9 +159,9 @@ const Forum = () => {
                 .catch(err => console.log(err))
         } else {
             const options = [
-                { value: "general", tag: "General"},
-                { value: user.proyecto.nombre, tag: user.proyecto.nombre}
+                { value: "general", tag: "General"}
             ]
+            if (user.proyecto && user.proyecto.tieneForo) { options.push({ value: user.proyecto.nombre, tag: user.proyecto.nombre}); }
             setForumOptions(options)
         }
     }, [])
@@ -264,7 +271,7 @@ const Forum = () => {
                                         <Row>
                                             <h5 className={"pt-2"}>{comment.colaborador.nombre}</h5>
                                             <p className={"fs-4 text-break"}>{comment.mensaje}</p>
-                                            <small className={"mb-1 text-secondary"}>{comment.tiempo}</small>
+                                            <small className={"mb-1 text-secondary"}>{formatDate(comment.tiempo)}</small>
                                         </Row>
                                         {(comment.respuestas.length !== 0) ? comment.respuestas.toReversed().map(
                                             reply => {
@@ -274,7 +281,7 @@ const Forum = () => {
                                                             {reply.mensaje}
                                                             <br />
                                                         </p>
-                                                        <small className={"text-secondary"}>{reply.tiempo}</small>
+                                                        <small className={"text-secondary"}>{formatDate(reply.tiempo)}</small>
                                                     </Row>
                                                 )
                                             }

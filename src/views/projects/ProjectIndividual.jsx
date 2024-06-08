@@ -3,7 +3,7 @@ import '../../styles/Style.css'
 import '../../styles/Tabs.css'
 // Local imports
 import {determineProjectStatus} from "../../controllers/BusinessLogic.jsx";
-import {getRequest} from "../../controllers/Database.jsx";
+import {getRequest, postRequest} from "../../controllers/Database.jsx";
 import ToastComponent from "../../components/ToastComponent.jsx";
 import Project from "../../models/Project.jsx";
 import { getTaskByState, DownloadReport, sendEmail } from '../../controllers/ReportsController.jsx'
@@ -35,6 +35,7 @@ const ProjectIndividual = () => {
     const [selectedFormat, setSelectedFormat] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const [projectData, setProjectData] = useState({})
+    const [canCreateForum, setCanCreateForum] = useState(false);
     // Components
     const [showToast, setShowToast] = useState(false)
     const [toastMessage, setToastMessage] = useState("")
@@ -45,6 +46,7 @@ const ProjectIndividual = () => {
         const fetchProject = async () => {
             try {
                 const response = await getRequest(`proyectos/${projectName}`)
+                const user = JSON.parse(localStorage.getItem("user"));
 
                 if (!response){
                     setToastMessage("Could not connect to the server.")
@@ -69,6 +71,7 @@ const ProjectIndividual = () => {
                             body.descripcion
                         )
                         setProject(project)
+                        setCanCreateForum((user.admin || (project.responsible && project.responsible === user.correo)) && !body.tieneForo);
                     }
                 }
             } catch (error) {
@@ -117,6 +120,28 @@ const ProjectIndividual = () => {
     
     const handleModalShow = () => setShowModal(true);
     const handleModalClose = () => setShowModal(false);
+
+    const handleCreateForum = async e => {
+        e.preventDefault();
+        const response = await postRequest({}, `foros/${project.name}`);
+        if (!response){
+            setToastMessage("Could not connect to the server.");
+            setShowToast(true);
+            return;
+        }
+        const body = await response.json();
+        console.log(body.message);
+        setToastMessage(body.message);
+        setShowToast(true);
+        if (response.ok) { 
+            setCanCreateForum(false);
+            const user = JSON.parse(localStorage.getItem("user"));
+            user.proyecto.tieneForo = true;
+            localStorage.setItem("user", JSON.stringify(user));
+        }
+
+    }
+
 
     return (
         <Container fluid className={"m-header"}>
@@ -178,6 +203,11 @@ const ProjectIndividual = () => {
                     <div className={"text-end"}>
                         <Button onClick={handleModalShow} className="btn btn-primary my-2">Generate report</Button>
                     </div>
+                </Col>
+                <Col className={"text-end"}>
+                    {canCreateForum ? 
+                        <Button onClick={handleCreateForum}>Create forum</Button> 
+                    : ""}
                 </Col>
             </Row>
             <Row>
